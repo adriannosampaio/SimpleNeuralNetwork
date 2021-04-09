@@ -32,40 +32,5 @@ int main()
 		1, 1, 1;
 	std::cout << "test result 2: " << nn.feed_forward(dataset2) << "\n";
 
-
 	return 0;
-	/*
-	Eigen::MatrixXd weights = Eigen::MatrixXd::Random(3, 1);
-	std::cout << dataset << "\n" << output << "\n" << weights << "\n";
-
-	auto function = Sigmoid();
-	
-	// Training
-	for (int iteration = 0; iteration < 10000; iteration++)
-	{
-		// First multiply the dataset by the weights to test the results
-		Eigen::MatrixXd res = dataset * weights;
-		res = function.apply_function(res);
-		if(iteration % 2000 == 0)
-			std::cout << res << "\n\n";
-		
-		// Check distance from expected values
-		Eigen::MatrixXd error = output - res;
-
-		// Use the error as factor multiplied by the activation
-		// function derivative to indicate the "step in the right 
-		// direction"
-		Eigen::MatrixXd delta(error);
-		auto derivatives = function.apply_derivative(res);
-		for (int i = 0; i < delta.rows(); i++){
-			for (int j = 0; j < delta.cols(); j++){
-				delta(i, j) *= derivatives(i, j);
-			}
-		}
-		
-		Eigen::MatrixXd step = dataset.transpose() * delta;
-		weights += step;
-	}
-	*/
-
 }
