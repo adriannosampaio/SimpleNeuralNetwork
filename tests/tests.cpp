@@ -46,8 +46,8 @@ TEST_CASE("Invert first input", "[Not]") {
 	expected_test_data << 1, 1, 0, 0;
 
 	auto test_data_output = nn.feed_forward(dataset2);
-	for (int row = 0; row < training_data_output.rows(); row++) {
-		REQUIRE(test_data_output(row, 0) == Catch::Approx(expected_test_data(row, 0)).epsilon(0.1));
+	for (int row = 0; row < test_data_output.rows(); row++) {
+		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Approx(0.0).margin(0.1));
 	}
 
 }
