@@ -1,0 +1,5 @@
+name: snn
+channels:
+  - conda-forge
+dependencies:
+  - catch2
