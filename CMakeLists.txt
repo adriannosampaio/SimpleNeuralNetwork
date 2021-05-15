@@ -7,8 +7,9 @@ project ("CMakeProject1")
 
 # Eigen library
 add_subdirectory(deps/Eigen)
+
 # Catch2 library
-add_subdirectory(deps/catch2)
+find_package(Catch2 REQUIRED)
 # Unit tests
 add_subdirectory(tests)
 
