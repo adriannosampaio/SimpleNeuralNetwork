@@ -8,7 +8,7 @@
 #include <NeuralNet.hpp>
 
 
-TEST_CASE("Invert first input", "[Not]") {
+TEST_CASE("Invert first input", "[Not Gate]") {
 
 	// training input data
 	Eigen::MatrixXd dataset(6, 3);
@@ -26,13 +26,13 @@ TEST_CASE("Invert first input", "[Not]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork(3, { 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid>(3, { 3, 3, 1 });
 	nn.train(dataset, expected_output);
 	auto training_data_output = nn.feed_forward(dataset);
 	
 	for (int row = 0; row < training_data_output.rows(); row++){
-		
-        REQUIRE(training_data_output(row, 0) - expected_output(row, 0) == ::Approx(0).margin(.1));
+		double error = training_data_output(row, 0) - expected_output(row, 0);
+		REQUIRE(error == Catch::Detail::Approx(0.0).margin(0.1));
 	}
 
 	Eigen::MatrixXd dataset2(4, 3);
@@ -42,13 +42,12 @@ TEST_CASE("Invert first input", "[Not]") {
 		1, 0, 0,
 		1, 1, 1;
 
-
 	Eigen::MatrixXd expected_test_data(4, 1);
 	expected_test_data << 1, 1, 0, 0;
 
 	auto test_data_output = nn.feed_forward(dataset2);
 	for (int row = 0; row < test_data_output.rows(); row++) {
-        REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == ::Approx(0.0).margin(0.1));
+		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Detail::Approx(0.0).margin(0.1));
 	}
-
 }
+

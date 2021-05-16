@@ -1,66 +1,11 @@
 #pragma once
 #include <vector>
-#include <stack>
-#include<Dense>
 #include <memory>
+#include <stack>
+#include <Dense>
+#include "ActivationFunction.hpp"
 
-
-class ActivationFunction
-{
-public:
-    /** Returns the result of applying the activation function
-    */
-    virtual double function(double x) const = 0;
-
-    /** Applies the activation function to every component in a
-    *	matrix
-    */
-    virtual Eigen::MatrixXd apply_function(const Eigen::MatrixXd& matrix) const
-    {
-        Eigen::MatrixXd result(matrix);
-        for (int i = 0; i < result.rows(); i++)
-        {
-            for (int j = 0; j < result.cols(); j++)
-            {
-                result(i, j) = this->function(result(i, j));
-            }
-        }
-        return result;
-    }
-
-    /** Returns the result of applying the function derivative
-    *	in a given point x
-    */
-    virtual double derivative(double x) const = 0;
-
-    /** Applies the function derivative to every component in a
-    *	matrix
-    */
-    virtual Eigen::MatrixXd apply_derivative(const Eigen::MatrixXd& matrix) const
-    {
-        Eigen::MatrixXd result(matrix);
-        for (int i = 0; i < result.rows(); i++)
-        {
-            for (int j = 0; j < result.cols(); j++)
-            {
-                result(i, j) = this->derivative(result(i, j));
-            }
-        }
-        return result;
-    }
-};
-
-class Sigmoid : public ActivationFunction {
-public:
-    inline double function(double x) const override {
-        return 1 / (1 + exp(-x));
-    }
-
-    inline double derivative(double x) const override {
-        return x * (1 - x);
-    }
-};
-
+template <typename TActivationFunction>
 class NeuralNetwork {
 
     /** Stores the number of layers in the (including input
@@ -90,8 +35,8 @@ class NeuralNetwork {
     std::shared_ptr<ActivationFunction> activation_function;
 
 public:
-    NeuralNetwork(int num_layers, std::vector<int> num_neurons) {
-        this->activation_function = std::make_shared<Sigmoid>();
+    NeuralNetwork(int num_layers, const std::vector<int>& num_neurons) {
+        this->activation_function = std::make_shared<TActivationFunction>();
         assert(num_neurons.size() == num_layers);
         this->num_layers = num_layers;
         this->num_neurons = num_neurons;
@@ -104,12 +49,12 @@ public:
     }
 
 
-    void train(const Eigen::MatrixXd& dataset, const Eigen::MatrixXd& expected_outputs) {
+    void train(const Eigen::MatrixXd& dataset, const Eigen::MatrixXd& expected_outputs, double alpha = 0.7) {
 
         std::stack<Eigen::MatrixXd> layer_feed;
         layer_feed.push(dataset);
 
-        for (int iteration = 0; iteration < 10000; iteration++)
+        for (int iteration = 0; iteration < 60000; iteration++)
         {
             // Feed forward storing the results for each layer
             for (int layer_id = 0; layer_id < this->num_layers - 1; layer_id++) {
@@ -142,7 +87,7 @@ public:
                 // calcultate the change in the weights to the current layer
                 Eigen::MatrixXd step = layer_input.transpose() * delta;
                 // Updating the weights
-                this->weights[layer_id - 1] += step;
+                this->weights[layer_id - 1] += alpha * step;
                 // Updating previous layer obtained results by assigning the 
                 // current layer input
                 obtained_result = layer_input;
