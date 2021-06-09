@@ -28,6 +28,5 @@ int main()
 		}
 	}
 	nn.train(data.train_images, expected_outputs);
-	nn.feed_forward()
 	return 0;
 }
