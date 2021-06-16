@@ -26,7 +26,7 @@ TEST_CASE("Invert first input", "[hide]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid>(3, { 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(4, { 3, 3, 3, 1 });
 	nn.train(dataset, expected_output);
 	auto training_data_output = nn.feed_forward(dataset);
 	
