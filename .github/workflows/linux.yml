@@ -32,6 +32,7 @@ jobs:
           CXX: g++-10
         run: |
           export SNN_TEST_DIR=$pwd/tests
+          echo $SNN_TEST_DIR
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Release ..
