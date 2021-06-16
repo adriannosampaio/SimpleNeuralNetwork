@@ -8,7 +8,7 @@
 #include <NeuralNet.hpp>
 #include "Mnist2Eigen/MnistReader.hpp"
 
-TEST_CASE("Invert first input", "[hide]") {
+TEST_CASE("Invert first input", "[not gate]") {
 
 	// training input data
 	Eigen::MatrixXd dataset(6, 3);
@@ -51,7 +51,7 @@ TEST_CASE("Invert first input", "[hide]") {
 	}
 }
 
-TEST_CASE("MNIST_READ", "[]") {
+TEST_CASE("MNIST_READ", "[mnist]") {
 
 	std::set<int> non_zero_pixels = {
 		203, 204, 205, 230, 231, 232, 233, 234, 235,
