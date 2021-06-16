@@ -67,8 +67,8 @@ TEST_CASE("MNIST_READ", "[mnist]") {
 	};
 
 	INFO("Getting environment variable SNN_TEST_DIR");
-	std::string test_dir = std::getenv("SNN_TEST_DIR");
-	INFO("Start reading MNIST files");
+	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
+	INFO("Start reading MNIST files: " + test_dir);
 	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/mnist-dataset");
 	
 	INFO("Start testing read results");
