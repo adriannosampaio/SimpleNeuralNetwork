@@ -179,15 +179,15 @@ namespace mnist2eigen
 
 	MNISTData read_mnist_dataset(const std::string& folder)
 	{
-		constexpr char train_images_file[] = "train-images-idx3-ubyte";
-		constexpr char train_labels_file[] = "train-labels-idx1-ubyte";
-		constexpr char test_images_file [] = "t10k-images-idx3-ubyte";
-		constexpr char test_labels_file [] = "t10k-labels-idx1-ubyte";
+		const static std::string train_images_file = "train-images-idx3-ubyte";
+		const static std::string train_labels_file = "train-labels-idx1-ubyte";
+		const static std::string test_images_file  = "t10k-images-idx3-ubyte";
+		const static std::string test_labels_file  = "t10k-labels-idx1-ubyte";
 
-		MNISTImageReader test_images(folder + "/" + std::string(test_images_file));
-		MNISTLabelReader test_labels(folder + "/" + std::string(test_labels_file));
-		MNISTImageReader train_images(folder + "/" + std::string(train_images_file));
-		MNISTLabelReader train_labels(folder + "/" + std::string(train_labels_file));
+		MNISTImageReader test_images (folder + "/"  + test_images_file);
+		MNISTLabelReader test_labels (folder + "/"  + test_labels_file);
+		MNISTImageReader train_images(folder + "/" + train_images_file);
+		MNISTLabelReader train_labels(folder + "/" + train_labels_file);
 
 		MNISTData data;
 		data.test_images = test_images.get_data();
