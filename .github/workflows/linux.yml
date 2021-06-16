@@ -31,12 +31,12 @@ jobs:
         env:
           CXX: g++-10
         run: |
-          export SNN_TEST_DIR=$PWD/tests
-          echo $SNN_TEST_DIR
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Release ..
           make
       - name: tests
         run: |
+          export SNN_TEST_DIR=$PWD/tests
+          echo $SNN_TEST_DIR
           ./build/tests/tests
