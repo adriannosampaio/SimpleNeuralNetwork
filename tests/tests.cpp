@@ -52,7 +52,9 @@ TEST_CASE("Invert first input", "[not gate]") {
 }
 
 TEST_CASE("MNIST_READ", "[mnist]") {
+	INFO("Test starting");
 
+	INFO("Setting expected result");
 	std::set<int> non_zero_pixels = {
 		203, 204, 205, 230, 231, 232, 233, 234, 235,
 		236, 237, 238, 239, 240, 241, 242, 243, 244,
@@ -64,9 +66,12 @@ TEST_CASE("MNIST_READ", "[mnist]") {
 		683, 684, 685, 711, 712, 713, 739, 740
 	};
 
+	INFO("Getting environment variable SNN_TEST_DIR");
 	std::string test_dir = std::getenv("SNN_TEST_DIR");
+	INFO("Start reading MNIST files");
 	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/mnist-dataset");
 	
+	INFO("Start testing read results");
 	for (int i = 0; i < 28; i++)
 	for (int j = 0; j < 28; j++){
 		int index = i * 28 + j;
