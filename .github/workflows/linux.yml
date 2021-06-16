@@ -31,7 +31,7 @@ jobs:
         env:
           CXX: g++-10
         run: |
-          export SNN_TEST_DIR=$pwd/tests
+          export SNN_TEST_DIR=$PWD/tests
           echo $SNN_TEST_DIR
           mkdir build
           cd build
