@@ -5,7 +5,7 @@
 #include <Dense>
 #include "ActivationFunction.hpp"
 
-template <typename TActivationFunction>
+template <typename TActivationFunction, int TEpochs=100>
 class NeuralNetwork {
 
     /** Stores the number of layers in the (including input
@@ -54,8 +54,16 @@ public:
         std::stack<Eigen::MatrixXd> layer_feed;
         layer_feed.push(dataset);
 
-        for (int iteration = 0; iteration < 60000; iteration++)
+        constexpr int number_of_iterations = TEpochs;
+        for (int iteration = 0; iteration < number_of_iterations; iteration++)
         {
+            const static int bar_size = 20;
+            double fraction = (double)iteration / number_of_iterations;
+            int bar_ticks = bar_size * fraction;
+            std::cout << "\rprogress => [" << std::string(bar_ticks, '#')
+                << std::string(bar_size - bar_ticks, '.') << "]" << 100*fraction << "%" 
+                << std::string(10, ' ');
+            
             // Feed forward storing the results for each layer
             for (int layer_id = 0; layer_id < this->num_layers - 1; layer_id++) {
                 // Applying the layer weights
