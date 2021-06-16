@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 
 #include <iostream>
+#include <cstdlib>
 #include <vector>
 #include <Dense>
 #include <NeuralNet.hpp>
