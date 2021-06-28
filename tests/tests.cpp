@@ -7,7 +7,7 @@
 #include <vector>
 #include <Dense>
 #include <NeuralNet.hpp>
-#include "Mnist2Eigen/MnistReader.hpp"
+#include "MnistReader.hpp"
 
 TEST_CASE("Invert first input", "[not gate]") {
 
@@ -51,7 +51,7 @@ TEST_CASE("Invert first input", "[not gate]") {
 		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Detail::Approx(0.0).margin(0.1));
 	}
 }
-
+/*
 TEST_CASE("MNIST_READ", "[mnist]") {
 	INFO("Test starting");
 
@@ -81,3 +81,4 @@ TEST_CASE("MNIST_READ", "[mnist]") {
 		}
 	}
 }
+*/
