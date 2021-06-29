@@ -1,10 +1,12 @@
-#pragma once
+#include "ActivationFunction.hpp"
+#include "NeuralNet.hpp"
+
+#include <Dense>
+
+#include <iostream>
 #include <vector>
 #include <memory>
 #include <stack>
-#include <Dense>
-#include "ActivationFunction.hpp"
-#include "NeuralNet.hpp"
 
 template <typename TActivationFunction, int TEpochs>
 NeuralNetwork<TActivationFunction, TEpochs>::NeuralNetwork(int num_layers, const std::vector<int>& num_neurons) {

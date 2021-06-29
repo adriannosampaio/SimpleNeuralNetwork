@@ -9,7 +9,7 @@
 #include <NeuralNet.hpp>
 #include "MnistReader.hpp"
 
-TEST_CASE("Invert first input", "[not gate]") {
+TEST_CASE("Invert first input", "[not first gate]") {
 
 	// training input data
 	Eigen::MatrixXd dataset(6, 3);
@@ -27,7 +27,7 @@ TEST_CASE("Invert first input", "[not gate]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(4, { 3, 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 300>(4, { 3, 3, 3, 1 });
 	nn.train(dataset, expected_output);
 	auto training_data_output = nn.feed_forward(dataset);
 	
@@ -52,6 +52,49 @@ TEST_CASE("Invert first input", "[not gate]") {
 	}
 }
 
+TEST_CASE("(first OR second) AND third inputs", "[first or second gate]") {
+
+	// training input data
+	Eigen::MatrixXd dataset(6, 3);
+	dataset <<
+		0, 0, 0,
+		0, 0, 1,
+		0, 1, 1,
+		1, 0, 1,
+		1, 1, 0,
+		1, 1, 1;
+
+	// training expected results
+	// (a v b) ^ c
+	Eigen::MatrixXd expected_output(6, 1);
+	expected_output << 0, 0, 1, 1, 0, 1;
+
+	// Creating a simple neural network with 2 layers
+	// (input and output) and 3 input nodes.
+	auto nn = NeuralNetwork<Sigmoid, 300>(4, { 3, 3, 3, 1 });
+	nn.train(dataset, expected_output);
+	auto training_data_output = nn.feed_forward(dataset);
+	
+	for (int row = 0; row < training_data_output.rows(); row++){
+		double error = training_data_output(row, 0) - expected_output(row, 0);
+		REQUIRE(error == Catch::Detail::Approx(0.0).margin(0.1));
+	}
+
+	Eigen::MatrixXd dataset2(4, 3);
+	dataset2 <<
+		0, 0, 0,
+		0, 1, 1,
+		1, 0, 0,
+		1, 1, 1;
+
+	Eigen::MatrixXd expected_test_data(4, 1);
+	expected_test_data << 0, 1, 0, 1;
+
+	auto test_data_output = nn.feed_forward(dataset2);
+	for (int row = 0; row < test_data_output.rows(); row++) {
+		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Detail::Approx(0.0).margin(0.1));
+	}
+}
 TEST_CASE("MNIST_READ", "[mnist]") {
 	INFO("Test starting");
 
