@@ -27,7 +27,7 @@ TEST_CASE("Invert first input", "[not first gate]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 300>(4, { 3, 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(4, { 3, 3, 3, 1 });
 	nn.train(dataset, expected_output);
 	auto training_data_output = nn.feed_forward(dataset);
 	
@@ -71,7 +71,7 @@ TEST_CASE("(first OR second) AND third inputs", "[first or second gate]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 300>(4, { 3, 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(4, { 3, 3, 3, 1 });
 	nn.train(dataset, expected_output);
 	auto training_data_output = nn.feed_forward(dataset);
 	
