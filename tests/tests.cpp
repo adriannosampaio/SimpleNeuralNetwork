@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <vector>
 #include <Dense>
-#include <NeuralNet.hpp>
+#include "NeuralNet.hpp"
 #include "MnistReader.hpp"
 
 TEST_CASE("Invert first input", "[not first gate]") {
@@ -27,9 +27,9 @@ TEST_CASE("Invert first input", "[not first gate]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(4, { 3, 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 300>(3, { 3, 3, 1 });
 	nn.train(dataset, expected_output);
-	auto training_data_output = nn.feed_forward(dataset);
+	auto training_data_output = nn.feed_forward(dataset.transpose());
 	
 	for (int row = 0; row < training_data_output.rows(); row++){
 		double error = training_data_output(row, 0) - expected_output(row, 0);
@@ -46,7 +46,7 @@ TEST_CASE("Invert first input", "[not first gate]") {
 	Eigen::MatrixXd expected_test_data(4, 1);
 	expected_test_data << 1, 1, 0, 0;
 
-	auto test_data_output = nn.feed_forward(dataset2);
+	auto test_data_output = nn.feed_forward(dataset2.transpose());
 	for (int row = 0; row < test_data_output.rows(); row++) {
 		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Detail::Approx(0.0).margin(0.1));
 	}
@@ -71,9 +71,9 @@ TEST_CASE("(first OR second) AND third inputs", "[first or second gate]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(4, { 3, 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(3, {3, 3, 1 });
 	nn.train(dataset, expected_output);
-	auto training_data_output = nn.feed_forward(dataset);
+	auto training_data_output = nn.feed_forward(dataset.transpose());
 	
 	for (int row = 0; row < training_data_output.rows(); row++){
 		double error = training_data_output(row, 0) - expected_output(row, 0);
@@ -90,11 +90,12 @@ TEST_CASE("(first OR second) AND third inputs", "[first or second gate]") {
 	Eigen::MatrixXd expected_test_data(4, 1);
 	expected_test_data << 0, 1, 0, 1;
 
-	auto test_data_output = nn.feed_forward(dataset2);
+	auto test_data_output = nn.feed_forward(dataset2.transpose());
 	for (int row = 0; row < test_data_output.rows(); row++) {
 		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Detail::Approx(0.0).margin(0.1));
 	}
 }
+/*
 TEST_CASE("MNIST_READ", "[mnist]") {
 	INFO("Test starting");
 
@@ -124,3 +125,4 @@ TEST_CASE("MNIST_READ", "[mnist]") {
 		}
 	}
 }
+*/
