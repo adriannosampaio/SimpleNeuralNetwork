@@ -52,6 +52,6 @@ public:
     }
 
     inline double derivative(double x) const override {
-        return x * (1 - x);
+        return this->function(x) * (1 - this->function(x));
     }
 };
