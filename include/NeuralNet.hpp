@@ -41,10 +41,11 @@ public:
         this->num_layers = num_layers;
         this->num_neurons = num_neurons;
         this->weights.reserve(num_layers - 1);
+        this->biases.reserve(num_layers - 1);
         for (int i = 0; i < num_layers - 1; i++)
         {
-            this->weights.push_back(
-                Eigen::MatrixXd::Random(num_neurons[i + 1], num_neurons[i]));
+            this->weights.push_back(Eigen::MatrixXd::Random(num_neurons[i + 1], num_neurons[i]));
+            this->biases.push_back(Eigen::MatrixXd::Ones(num_neurons[i + 1], 1));
         }
     }
 
@@ -58,26 +59,31 @@ public:
         {
             for (int example = 0; example < number_of_examples; example++)
             {
-                std::vector<Eigen::MatrixXd> delta_w = train_example(
+                auto deltas = train_example(
                     dataset.row(example).transpose(),
                     expected_outputs.row(example).transpose()
                 );
 
                 // updating weights
                 for (int layer = this->num_layers - 2; layer >= 0; layer--) {
-                    this->weights[layer] += alpha * delta_w[layer];
+                    // Weights delta
+                    this->weights[layer] += alpha * deltas.first[layer];
+                    // Biases delta
+                    this->biases[layer] += alpha * deltas.second[layer];
                 }
 
             }
         }
     }
 
-    std::vector<Eigen::MatrixXd> train_example(
+    std::pair<std::vector<Eigen::MatrixXd>, std::vector<Eigen::MatrixXd>> 
+    train_example(
         const Eigen::MatrixXd& input,
         const Eigen::MatrixXd& output,
         double alpha = 0.7)
     {
         std::vector<Eigen::MatrixXd> weight_deltas(this->num_layers - 1);
+        std::vector<Eigen::MatrixXd> bias_deltas(this->num_layers - 1);
 
         // Feed forward the current input value
         std::vector<Eigen::MatrixXd> z_values;
@@ -89,6 +95,7 @@ public:
             cost.cwiseProduct(this->activation_function->apply_derivative(z_values.back()));
 
         weight_deltas[this->num_layers - 2] = delta * activations[this->num_layers - 2].transpose();
+        bias_deltas[this->num_layers - 2] = delta;
 
         for (int layer = this->num_layers - 3; layer >= 0; layer--)
         {
@@ -96,9 +103,10 @@ public:
                 this->activation_function->apply_derivative(z_values[layer])
             );
             weight_deltas[layer] = delta * activations[layer].transpose();
+            bias_deltas[layer] = delta;
         }
 
-        return weight_deltas;
+        return std::make_pair(weight_deltas, bias_deltas);
     }
 
     /** Simply pass a list of inputs through the network and return
@@ -112,7 +120,7 @@ public:
         for (int layer_id = 0; layer_id < this->num_layers - 1; layer_id++) {
             // Applying the layer weights and the activation function
             layer_result = activation_function->apply_function(
-                weights[layer_id] * layer_result);
+                weights[layer_id] * layer_result + this->biases[layer_id]);
         }
         return layer_result;
     }
@@ -138,7 +146,7 @@ public:
         // Feed forward storing the results for each layer
         for (int layer_id = 0; layer_id < this->num_layers - 1; layer_id++) {
             // Applying the layer weights and the activation function
-            zs.push_back(this->weights[layer_id]*layer_result);
+            zs.push_back(this->weights[layer_id]*layer_result + this->biases[layer_id]);
             layer_result = activation_function->apply_function(zs.back());
             activations.push_back(layer_result);
         }
