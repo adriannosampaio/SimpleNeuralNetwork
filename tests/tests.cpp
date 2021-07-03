@@ -1,13 +1,49 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
-
 #include <catch2/catch.hpp>
+#include <Dense>
+#include "NeuralNet.hpp"
+#include "MnistReader.hpp"
 
 #include <iostream>
 #include <cstdlib>
 #include <vector>
-#include <Dense>
-#include "NeuralNet.hpp"
-#include "MnistReader.hpp"
+
+template<class TA, int TI>
+void test_model(
+	const NeuralNetwork<TA, TI>& model, 
+	const Eigen::MatrixXd& test_set_inputs, 
+	const Eigen::MatrixXd& test_set_outputs)
+{
+	Eigen::MatrixXd obtained_output(
+		test_set_outputs.cols(),
+		test_set_outputs.rows());
+	
+	int test_examples = test_set_inputs.rows();
+
+	for (int ex = 0; ex < test_examples ; ex++){
+		obtained_output.col(ex) = model.feed_forward(test_set_inputs.row(ex).transpose());
+	}
+
+	int num_errors = 0;
+	for (int ex = 0; ex < test_examples; ex++){
+		for (int i = 0; i < test_set_outputs.cols(); i++)
+		{
+			auto result_difference = obtained_output(i, ex) - test_set_outputs(ex, i);
+			bool is_correct = result_difference == Catch::Detail::Approx(0.0).margin(0.1);
+			CHECK(is_correct);
+			if (!is_correct)
+			{
+				WARN("Error at example " << ex << " , in output neuron " << i << ": " << result_difference);
+			}
+			num_errors += !is_correct;
+		}
+	}
+
+	WARN(
+		num_errors << "out of " << test_examples << "cases failed (" 
+		<< 100 * (double) num_errors / test_examples<< "% fail rate)"
+	);
+}
 
 TEST_CASE("Invert first input", "[not first gate]") {
 
@@ -27,14 +63,9 @@ TEST_CASE("Invert first input", "[not first gate]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 300>(3, { 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(3, { 3, 3, 1 });
 	nn.train(dataset, expected_output);
-	auto training_data_output = nn.feed_forward(dataset.transpose());
-	
-	for (int row = 0; row < training_data_output.rows(); row++){
-		double error = training_data_output(row, 0) - expected_output(row, 0);
-		REQUIRE(error == Catch::Detail::Approx(0.0).margin(0.1));
-	}
+	test_model(nn, dataset, expected_output);
 
 	Eigen::MatrixXd dataset2(4, 3);
 	dataset2 <<
@@ -45,11 +76,8 @@ TEST_CASE("Invert first input", "[not first gate]") {
 
 	Eigen::MatrixXd expected_test_data(4, 1);
 	expected_test_data << 1, 1, 0, 0;
+	test_model(nn, dataset2, expected_test_data);
 
-	auto test_data_output = nn.feed_forward(dataset2.transpose());
-	for (int row = 0; row < test_data_output.rows(); row++) {
-		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Detail::Approx(0.0).margin(0.1));
-	}
 }
 
 TEST_CASE("(first OR second) AND third inputs", "[first or second gate]") {
@@ -71,14 +99,9 @@ TEST_CASE("(first OR second) AND third inputs", "[first or second gate]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(3, {3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(4, {3, 3, 3, 1 });
 	nn.train(dataset, expected_output);
-	auto training_data_output = nn.feed_forward(dataset.transpose());
-	
-	for (int row = 0; row < training_data_output.rows(); row++){
-		double error = training_data_output(row, 0) - expected_output(row, 0);
-		REQUIRE(error == Catch::Detail::Approx(0.0).margin(0.1));
-	}
+	test_model(nn, dataset, expected_output);
 
 	Eigen::MatrixXd dataset2(4, 3);
 	dataset2 <<
@@ -89,17 +112,13 @@ TEST_CASE("(first OR second) AND third inputs", "[first or second gate]") {
 
 	Eigen::MatrixXd expected_test_data(4, 1);
 	expected_test_data << 0, 1, 0, 1;
-
-	auto test_data_output = nn.feed_forward(dataset2.transpose());
-	for (int row = 0; row < test_data_output.rows(); row++) {
-		REQUIRE(test_data_output(row, 0) - expected_test_data(row, 0) == Catch::Detail::Approx(0.0).margin(0.1));
-	}
+	test_model(nn, dataset2, expected_test_data);
 }
 /*
 TEST_CASE("MNIST_READ", "[mnist]") {
-	INFO("Test starting");
+	UNSCOPED_INFO("Test starting");
 
-	INFO("Setting expected result");
+	UNSCOPED_INFO("Setting expected result");
 	std::set<int> non_zero_pixels = {
 		203, 204, 205, 230, 231, 232, 233, 234, 235,
 		236, 237, 238, 239, 240, 241, 242, 243, 244,
@@ -111,12 +130,12 @@ TEST_CASE("MNIST_READ", "[mnist]") {
 		683, 684, 685, 711, 712, 713, 739, 740
 	};
 
-	INFO("Getting environment variable SNN_TEST_DIR");
+	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
 	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
-	INFO("Start reading MNIST files: " + test_dir);
+	UNSCOPED_INFO("Start reading MNIST files: " + test_dir);
 	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/MNIST-dataset");
 	
-	INFO("Start testing read results");
+	UNSCOPED_INFO("Start testing read results");
 	for (int i = 0; i < 28; i++)
 	for (int j = 0; j < 28; j++){
 		int index = i * 28 + j;
