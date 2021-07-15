@@ -5,6 +5,8 @@
 #include <Dense>
 #include "ActivationFunction.hpp"
 
+void show_loading_bar(int iteration, const int& number_of_iterations, const int& bar_size, double& next_report, const double& report_interval);
+
 template <typename TActivationFunction, int TEpochs=100>
 class NeuralNetwork {
 
@@ -44,19 +46,80 @@ public:
         this->biases.reserve(num_layers - 1);
         for (int i = 0; i < num_layers - 1; i++)
         {
-            this->weights.push_back(Eigen::MatrixXd::Random(num_neurons[i + 1], num_neurons[i]));
+            this->weights.push_back(Eigen::MatrixXd::Random(num_neurons[i + 1], num_neurons[i]) / 1000);
             this->biases.push_back(Eigen::MatrixXd::Ones(num_neurons[i + 1], 1));
+        }
+    }
+
+    NeuralNetwork(const std::string& filename) {
+        this->activation_function = std::make_shared<TActivationFunction>();
+        std::ifstream file(filename);
+        if (file.is_open())
+        {
+            file >> this->num_layers;
+            this->num_neurons = std::vector<int>(this->num_layers);
+            file >> this->num_neurons.front();
+            this->weights.reserve(num_layers - 1);
+            this->biases.reserve(num_layers - 1);
+            int weight_dimension[2], bias_dimension;
+            for (int l = 0; l < num_layers - 1; l++)
+            {
+                file >> weight_dimension[0] >> weight_dimension[1];
+                //this->num_neurons[0] = weight_dimension[1];
+                this->weights.push_back(
+                    Eigen::MatrixXd::Zero(
+                        weight_dimension[0], weight_dimension[1]));
+                for (int i = 0; i < weight_dimension[0]; i++)
+                for (int j = 0; j < weight_dimension[1]; j++)
+                {
+                    double x;
+                    file >> x;
+                    //std::cout << x << " ";
+                    this->weights[l](i, j) = x;
+                }
+                //std::cout << "\n";
+                file >> bias_dimension;
+                this->biases.push_back(
+                    Eigen::MatrixXd::Ones(bias_dimension, 1));
+                for (int j = 0; j < bias_dimension; j++)
+                {
+                    double x;
+                    file >> x;
+                    this->biases[l](j, 0) = x;
+                }
+            }
+        }
+    }
+
+    void export_model(const std::string& filename) const
+    {
+        std::ofstream file(filename);
+        if (file.is_open())
+        {
+            file << num_layers << " " << num_neurons[0] << "\n";
+            for (int i = 0; i < num_layers - 1; i++)
+            {
+                file << num_neurons[i+1]<< " " << num_neurons[i] << "\n";
+                for (auto x : this->weights[i].reshaped<Eigen::RowMajor>())
+                    file << x << " ";
+                file << "\n";
+                file << num_neurons[i+1] << "\n";
+                for (auto x : this->biases[i].reshaped<Eigen::RowMajor>())
+                    file << x << " ";
+                file << "\n";
+            }
         }
     }
 
 
     void train(const Eigen::MatrixXd& dataset, const Eigen::MatrixXd& expected_outputs, double alpha = 0.7) {
         int number_of_examples = dataset.rows();
-
         constexpr int number_of_iterations = TEpochs;
 
-        for (int iteration = 0; iteration < number_of_iterations; iteration++)
-        {
+        auto bar = LoadingBar(40, number_of_iterations);
+        
+        for (int iteration = 0; iteration < number_of_iterations; iteration++, bar.show_loading_bar(iteration)){
+            ;
             for (int example = 0; example < number_of_examples; example++)
             {
                 auto deltas = train_example(
@@ -151,5 +214,37 @@ public:
             activations.push_back(layer_result);
         }
         return layer_result;
+    }
+};
+
+
+class LoadingBar {
+public:
+    int bar_size;
+    int max_progress;
+    double report_interval;
+    double next_report;
+
+    LoadingBar(
+        int bar_size,
+        double max_progress=100,
+        char line_separator = '\n'
+    ) :   
+        bar_size(bar_size), 
+        next_report(0.0), 
+        report_interval(100.0/bar_size), 
+        max_progress(max_progress) {}
+
+    void show_loading_bar(double progress){
+        double progress_fraction = progress / this->max_progress;
+        double bar_ticks = this->bar_size * progress_fraction;
+        double percentage = 100 * progress_fraction;
+        if (percentage >= this->next_report) {
+            std::cout << "Training progress |"
+                << std::string(bar_ticks, '#')
+                << std::string(this->bar_size - bar_ticks, '.')
+                << "| " << percentage << "%\n";
+            this->next_report += this->report_interval;
+        }
     }
 };

@@ -9,7 +9,6 @@
 #include "NeuralNet.hpp"
 #include "ActivationFunction.hpp"
 
-
 int main()
 {
 	Eigen::setNbThreads(2);
@@ -18,7 +17,7 @@ int main()
 		mnist2eigen::read_mnist_dataset("../tests/MNIST-dataset/");
 	mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
 
-	auto nn = NeuralNetwork<Sigmoid, 300>(4, { 28 * 28, 300, 100, 10 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(4, { 28 * 28, 100, 10 });
 
 	// Converting labels to one-hot encoded data
 	Eigen::MatrixXd expected_outputs(data.train_labels.rows(), 10);
@@ -28,6 +27,9 @@ int main()
 				(i == data.train_images(r)) ? 1.0 : 0.0;
 		}
 	}
-	nn.train(data.train_images, expected_outputs);
+	nn.train(
+		data.train_images.block(0, 0, data.train_images.cols(), 200),
+		expected_outputs.block(0, 0, expected_outputs.cols(), 200));
+
 	return 0;
 }
