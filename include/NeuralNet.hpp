@@ -5,7 +5,39 @@
 #include <Dense>
 #include "ActivationFunction.hpp"
 
-void show_loading_bar(int iteration, const int& number_of_iterations, const int& bar_size, double& next_report, const double& report_interval);
+
+
+class LoadingBar {
+public:
+    int bar_size;
+    int max_progress;
+    double report_interval;
+    double next_report;
+
+    LoadingBar(
+        int bar_size,
+        double max_progress = 100,
+        char line_separator = '\n'
+    ) :
+        bar_size(bar_size),
+        next_report(0.0),
+        report_interval(100.0 / bar_size),
+        max_progress(max_progress) {}
+
+    void show_loading_bar(double progress) {
+        double progress_fraction = progress / this->max_progress;
+        double bar_ticks = this->bar_size * progress_fraction;
+        double percentage = 100 * progress_fraction;
+        if (percentage >= this->next_report) {
+            std::cout << "Training progress |"
+                << std::string(bar_ticks, '#')
+                << std::string(this->bar_size - bar_ticks, '.')
+                << "| " << percentage << "%\n";
+            this->next_report += this->report_interval;
+        }
+    }
+};
+
 
 template <typename TActivationFunction, int TEpochs=100>
 class NeuralNetwork {
@@ -116,7 +148,7 @@ public:
         int number_of_examples = dataset.rows();
         constexpr int number_of_iterations = TEpochs;
 
-        auto bar = LoadingBar(40, number_of_iterations);
+        auto bar = LoadingBar(40, static_cast<double>(number_of_iterations));
         
         for (int iteration = 0; iteration < number_of_iterations; iteration++, bar.show_loading_bar(iteration)){
             ;
@@ -214,37 +246,5 @@ public:
             activations.push_back(layer_result);
         }
         return layer_result;
-    }
-};
-
-
-class LoadingBar {
-public:
-    int bar_size;
-    int max_progress;
-    double report_interval;
-    double next_report;
-
-    LoadingBar(
-        int bar_size,
-        double max_progress=100,
-        char line_separator = '\n'
-    ) :   
-        bar_size(bar_size), 
-        next_report(0.0), 
-        report_interval(100.0/bar_size), 
-        max_progress(max_progress) {}
-
-    void show_loading_bar(double progress){
-        double progress_fraction = progress / this->max_progress;
-        double bar_ticks = this->bar_size * progress_fraction;
-        double percentage = 100 * progress_fraction;
-        if (percentage >= this->next_report) {
-            std::cout << "Training progress |"
-                << std::string(bar_ticks, '#')
-                << std::string(this->bar_size - bar_ticks, '.')
-                << "| " << percentage << "%\n";
-            this->next_report += this->report_interval;
-        }
     }
 };
