@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Dense>
-
 class ActivationFunction
 {
 public:

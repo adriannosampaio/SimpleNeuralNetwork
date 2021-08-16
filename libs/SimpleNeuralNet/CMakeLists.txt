@@ -1,0 +1,4 @@
+add_library(SimpleNeuralNet INTERFACE)
+target_include_directories(SimpleNeuralNet INTERFACE .)
+#target_sources(SimpleNeuralNet INTERFACE ActivationFunction.hpp NeuralNet.hpp)
+target_link_libraries(SimpleNeuralNet INTERFACE eigen)

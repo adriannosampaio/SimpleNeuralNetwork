@@ -18,12 +18,13 @@ add_subdirectory(deps/Eigen)
 # Catch2 library
 find_package(Catch2 REQUIRED)
 # Unit tests
-add_subdirectory(tests)
 
 add_subdirectory(libs/Mnist2Eigen)
+add_subdirectory(libs/SimpleNeuralNet)
+add_subdirectory(tests)
 
 # Adicione a origem ao executável deste projeto.
 add_executable (CMakeProject1 "main.cpp")
 
-target_include_directories(CMakeProject1 PUBLIC libs/SimpleNeuralNet libs/Mnist2Eigen)
-target_link_libraries(CMakeProject1 PRIVATE eigen  mnist2eigen)
+#target_include_directories(CMakeProject1 PUBLIC libs/SimpleNeuralNet libs/Mnist2Eigen)
+target_link_libraries(CMakeProject1 PRIVATE eigen mnist2eigen SimpleNeuralNet)
