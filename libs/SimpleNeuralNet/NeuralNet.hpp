@@ -3,6 +3,7 @@
 #include <memory>
 #include <stack>
 #include <Dense>
+#include <nlohmann/json.hpp>
 #include "ActivationFunction.hpp"
 
 
@@ -125,21 +126,51 @@ public:
 
     void export_model(const std::string& filename) const
     {
+        auto indent = [](int i) { return std::string(i, '\t'); };
         std::ofstream file(filename);
         if (file.is_open())
         {
-            file << num_layers << " " << num_neurons[0] << "\n";
+            file << "{" << "\n";
+            file << indent(1) << "\"num_layers\" : " << this->num_layers << "," << "\n";
+            file << indent(1) << "\"cost_function\" : " << "\"quadratic\"" << "," << "\n";
+            file << indent(1) << "\"layers\" : [" << "\n";
             for (int i = 0; i < num_layers - 1; i++)
             {
-                file << num_neurons[i+1]<< " " << num_neurons[i] << "\n";
+                file << indent(1) << "{" << "\n";
+                file << indent(2) << "\"num_input_layers\"  : " << this->weights[i].cols() << "," << "\n";
+                file << indent(2) << "\"num_output_layers\" : " << this->weights[i].rows() << "," << "\n";
+                file << indent(2) << "\"activation\" : " << "\"sigmoid\"" << "," << "\n";
+                file << indent(2) << "\"weights\" : " << "[";
+                //file << num_neurons[i + 1] << " " << num_neurons[i] << "\n";
+                int idx = 0;
                 for (auto x : this->weights[i].reshaped<Eigen::RowMajor>())
-                    file << x << " ";
-                file << "\n";
-                file << num_neurons[i+1] << "\n";
+                {
+                    file << x;
+                    if (idx != this->weights[i].size() - 1) {
+                        file << ", ";
+                    }
+                    else {
+                        file << "]," << "\n";
+                    }
+                    idx++;
+                }
+                file << indent(2) << "\"biases\" : " << "[";
+                idx = 0;
                 for (auto x : this->biases[i].reshaped<Eigen::RowMajor>())
-                    file << x << " ";
-                file << "\n";
+                {
+                    file << x;
+                    if (idx != this->biases[i].size() - 1) {
+                        file << ", ";
+                    }
+                    else {
+                        file << "]" << "\n";
+                    }
+                    idx++;
+                }
+                file << indent(1) << "}," << "\n";
             }
+            file << "]" << "\n";
+            file << "}";
         }
     }
 
