@@ -136,11 +136,11 @@ public:
             file << indent(1) << "\"layers\" : [" << "\n";
             for (int i = 0; i < num_layers - 1; i++)
             {
-                file << indent(1) << "{" << "\n";
-                file << indent(2) << "\"num_input_layers\"  : " << this->weights[i].cols() << "," << "\n";
-                file << indent(2) << "\"num_output_layers\" : " << this->weights[i].rows() << "," << "\n";
-                file << indent(2) << "\"activation\" : " << "\"sigmoid\"" << "," << "\n";
-                file << indent(2) << "\"weights\" : " << "[";
+                file << indent(2) << "{" << "\n";
+                file << indent(3) << "\"num_input_layers\"  : " << this->weights[i].cols() << "," << "\n";
+                file << indent(3) << "\"num_output_layers\" : " << this->weights[i].rows() << "," << "\n";
+                file << indent(3) << "\"activation\" : " << "\"sigmoid\"" << "," << "\n";
+                file << indent(3) << "\"weights\" : " << "[";
                 //file << num_neurons[i + 1] << " " << num_neurons[i] << "\n";
                 int idx = 0;
                 for (auto x : this->weights[i].reshaped<Eigen::RowMajor>())
@@ -154,7 +154,7 @@ public:
                     }
                     idx++;
                 }
-                file << indent(2) << "\"biases\" : " << "[";
+                file << indent(3) << "\"biases\" : " << "[";
                 idx = 0;
                 for (auto x : this->biases[i].reshaped<Eigen::RowMajor>())
                 {
@@ -167,9 +167,9 @@ public:
                     }
                     idx++;
                 }
-                file << indent(1) << "}," << "\n";
+                file << indent(2) << "}," << "\n";
             }
-            file << "]" << "\n";
+            file << indent(1) << "]" << "\n";
             file << "}";
         }
     }
