@@ -67,11 +67,15 @@ class NeuralNetwork {
     */
     std::vector<Eigen::VectorXd> biases;
 
-    std::shared_ptr<ActivationFunction> activation_function;
+    std::vector<std::shared_ptr<ActivationFunction>> activation_functions;
 
 public:
-    NeuralNetwork(int num_layers, const std::vector<int>& num_neurons) {
-        this->activation_function = std::make_shared<TActivationFunction>();
+    NeuralNetwork(
+        int num_layers, 
+        const std::vector<int>& num_neurons,
+        const std::vector<std::string>& activation_function_names) 
+    {
+        assert(activation_function_names.size() == num_layers - 1);
         assert(num_neurons.size() == num_layers);
         this->num_layers = num_layers;
         this->num_neurons = num_neurons;
@@ -81,12 +85,12 @@ public:
         {
             this->weights.push_back(Eigen::MatrixXd::Random(num_neurons[i + 1], num_neurons[i]) / 1000);
             this->biases.push_back(Eigen::MatrixXd::Ones(num_neurons[i + 1], 1));
+            this->activation_functions.push_back(activation_from_name(activation_function_names[i]));
         }
     }
 
     NeuralNetwork(const std::string& filename) {
         using json = nlohmann::json;
-        this->activation_function = std::make_shared<TActivationFunction>();
         std::ifstream file(filename);
         if (file.is_open())
         {
@@ -96,11 +100,9 @@ public:
             this->num_neurons.push_back(model_data["layers"][0]["num_input_layers"]);
             for (auto j_obj : model_data["layers"])
             {
-                int weight_dimension[2] = {};
-                std::cout << j_obj.is_object() << " \n";
-                std::cout << j_obj["activation"] << " \n";
-                std::cout << j_obj["num_output_layers"] << " \n";
                 this->num_neurons.push_back(j_obj["num_output_layers"]);
+                this->activation_functions.push_back(
+                    activation_from_name(j_obj["activation"].get<std::string>()));
                 this->weights.push_back(
                     Eigen::MatrixXd::Zero(j_obj["num_output_layers"], j_obj["num_input_layers"]));
                 for (int i = 0, idx = 0; i < j_obj["num_output_layers"]; i++)
@@ -116,40 +118,6 @@ public:
                     this->biases.back()(j, 0) = j_obj["biases"][j];
                 }
             }
-
-            /*
-            file >> this->num_layers;
-            file >> this->num_neurons.front();
-            this->weights.reserve(num_layers - 1);
-            this->biases.reserve(num_layers - 1);
-            int weight_dimension[2], bias_dimension;
-            for (int l = 0; l < num_layers - 1; l++)
-            {
-                file >> weight_dimension[0] >> weight_dimension[1];
-                //this->num_neurons[0] = weight_dimension[1];
-                this->weights.push_back(
-                    Eigen::MatrixXd::Zero(
-                        weight_dimension[0], weight_dimension[1]));
-                for (int i = 0; i < weight_dimension[0]; i++)
-                for (int j = 0; j < weight_dimension[1]; j++)
-                {
-                    double x;
-                    file >> x;
-                    //std::cout << x << " ";
-                    this->weights[l](i, j) = x;
-                }
-                //std::cout << "\n";
-                file >> bias_dimension;
-                this->biases.push_back(
-                    Eigen::MatrixXd::Ones(bias_dimension, 1));
-                for (int j = 0; j < bias_dimension; j++)
-                {
-                    double x;
-                    file >> x;
-                    this->biases[l](j, 0) = x;
-                }
-            }
-            */
         }
     }
 
@@ -211,7 +179,6 @@ public:
         auto bar = LoadingBar(40, static_cast<double>(number_of_iterations));
         
         for (int iteration = 0; iteration < number_of_iterations; iteration++, bar.show_loading_bar(iteration)){
-            ;
             for (int example = 0; example < number_of_examples; example++)
             {
                 auto deltas = train_example(
@@ -247,7 +214,7 @@ public:
 
         // Since there's no z-value in the first (input) layer
         Eigen::MatrixXd delta =
-            cost.cwiseProduct(this->activation_function->apply_derivative(z_values.back()));
+            cost.cwiseProduct(this->activation_functions.back()->apply_derivative(z_values.back()));
 
         weight_deltas[this->num_layers - 2] = delta * activations[this->num_layers - 2].transpose();
         bias_deltas[this->num_layers - 2] = delta;
@@ -255,7 +222,7 @@ public:
         for (int layer = this->num_layers - 3; layer >= 0; layer--)
         {
             delta = (this->weights[layer + 1].transpose() * delta).cwiseProduct(
-                this->activation_function->apply_derivative(z_values[layer])
+                this->activation_functions[layer]->apply_derivative(z_values[layer])
             );
             weight_deltas[layer] = delta * activations[layer].transpose();
             bias_deltas[layer] = delta;
@@ -274,7 +241,7 @@ public:
         // Feed forward storing the results for each layer
         for (int layer_id = 0; layer_id < this->num_layers - 1; layer_id++) {
             // Applying the layer weights and the activation function
-            layer_result = activation_function->apply_function(
+            layer_result = activation_functions[layer_id]->apply_function(
                 weights[layer_id] * layer_result + this->biases[layer_id]);
         }
         return layer_result;
@@ -302,7 +269,7 @@ public:
         for (int layer_id = 0; layer_id < this->num_layers - 1; layer_id++) {
             // Applying the layer weights and the activation function
             zs.push_back(this->weights[layer_id]*layer_result + this->biases[layer_id]);
-            layer_result = activation_function->apply_function(zs.back());
+            layer_result = activation_functions[layer_id]->apply_function(zs.back());
             activations.push_back(layer_result);
         }
         return layer_result;

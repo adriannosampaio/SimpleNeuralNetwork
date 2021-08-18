@@ -67,7 +67,11 @@ TEST_CASE("Invert first input", "[logic_gate][model_train][model_test]") {
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(3, { 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(
+		3, 
+		{3, 3, 1 }, // Number of neurons per layer
+		{"sigmoid", "sigmoid"} // Activation functions
+	);
 	nn.train(dataset, expected_output);
 	test_model(nn, dataset, expected_output);
 
@@ -109,7 +113,11 @@ TEST_CASE("(first OR second) AND third inputs", "[logic_gate][model_train][model
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(4, {3, 3, 3, 1 });
+	auto nn = NeuralNetwork<Sigmoid, 1000>(
+		4, 
+		{3, 3, 3, 1 },
+		{"sigmoid", "sigmoid", "sigmoid"}
+	);
 	nn.train(dataset, expected_output);
 	test_model(nn, dataset, expected_output);
 
@@ -167,7 +175,7 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/MNIST-dataset");
 	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
 
-	auto nn = NeuralNetwork<Sigmoid, 100>(4, { 28 * 28, 100, 100, 10 });
+	auto nn = NeuralNetwork<Sigmoid, 100>(4, { 28 * 28, 100, 100, 10 }, {"sigmoid", "sigmoid", "sigmoid"});
 
 	// Converting labels to one-hot encoded data
 	Eigen::MatrixXd expected_outputs(data.train_labels.rows(), 10);
