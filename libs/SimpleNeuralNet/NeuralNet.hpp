@@ -173,7 +173,7 @@ public:
 
     void train(const Eigen::MatrixXd& dataset, const Eigen::MatrixXd& expected_outputs, int num_iterations=1000, double alpha = 0.7) {
         int number_of_examples = dataset.rows();
-        constexpr int number_of_iterations = num_iterations;
+        const int number_of_iterations = num_iterations;
 
         auto bar = LoadingBar(40, static_cast<double>(number_of_iterations));
         
