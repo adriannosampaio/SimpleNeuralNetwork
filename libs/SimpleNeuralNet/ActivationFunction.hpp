@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 class ActivationFunction
 {
@@ -55,3 +56,11 @@ public:
         return this->function(x) * (1 - this->function(x));
     }
 };
+
+std::shared_ptr<ActivationFunction> activation_from_name(const std::string& function_name)
+{
+    if(function_name == "sigmoid") return std::make_shared<Sigmoid>();
+    // If the function did not yet return a value, then the passed function
+    // name does not have a class defined
+    throw std::runtime_error("Invalid activation function name: " + function_name);
+}

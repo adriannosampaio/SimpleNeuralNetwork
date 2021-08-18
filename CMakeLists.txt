@@ -17,6 +17,8 @@ add_subdirectory(deps/Eigen)
 
 # Catch2 library
 find_package(Catch2 REQUIRED)
+find_package(nlohmann_json 3.2.0 REQUIRED)
+
 # Unit tests
 
 add_subdirectory(libs/Mnist2Eigen)

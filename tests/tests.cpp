@@ -78,6 +78,12 @@ TEST_CASE("Invert first input", "[logic_gate][model_train][model_test]") {
 		1, 0, 0,
 		1, 1, 1;
 
+	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
+	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
+	nn.export_model(test_dir + "/model1.json");
+	NeuralNetwork<Sigmoid, 100> model(test_dir + "/model1.json");
+	test_model(model, dataset, expected_output);
+
 	Eigen::MatrixXd expected_test_data(4, 1);
 	expected_test_data << 1, 1, 0, 0;
 	test_model(nn, dataset2, expected_test_data);
@@ -185,7 +191,7 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 	}
 	test_model(nn, data.test_images, test_outputs);
 
-	nn.export_model(test_dir + "/mnist_model.txt");
+	nn.export_model(test_dir + "/mnist_model.json");
 }
 
 TEST_CASE("MNIST_IMPORT", "[mnist][model_test][.]") {
@@ -216,7 +222,7 @@ TEST_CASE("MNIST_IMPORT", "[mnist][model_test][.]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	auto nn = NeuralNetwork<Sigmoid, 100>(test_dir + "/mnist_model.txt");
+	auto nn = NeuralNetwork<Sigmoid, 100>(test_dir + "/mnist_model.json");
 	test_model(nn, data.test_images, test_outputs);
 
 }
@@ -249,7 +255,7 @@ TEST_CASE("MNIST_IMPORT_SAVED_BEFORE", "[mnist][model_test]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	auto nn = NeuralNetwork<Sigmoid, 100>(test_dir + "/mnist_model_saved.txt");
+	auto nn = NeuralNetwork<Sigmoid, 100>(test_dir + "/mnist_model_saved.json");
 	test_model(nn, data.test_images, test_outputs);
 
 }

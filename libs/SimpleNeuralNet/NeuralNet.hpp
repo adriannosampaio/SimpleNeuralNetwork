@@ -85,12 +85,40 @@ public:
     }
 
     NeuralNetwork(const std::string& filename) {
+        using json = nlohmann::json;
         this->activation_function = std::make_shared<TActivationFunction>();
         std::ifstream file(filename);
         if (file.is_open())
         {
+            json model_data;
+            file >> model_data;
+            this->num_layers = model_data["num_layers"];
+            this->num_neurons.push_back(model_data["layers"][0]["num_input_layers"]);
+            for (auto j_obj : model_data["layers"])
+            {
+                int weight_dimension[2] = {};
+                std::cout << j_obj.is_object() << " \n";
+                std::cout << j_obj["activation"] << " \n";
+                std::cout << j_obj["num_output_layers"] << " \n";
+                this->num_neurons.push_back(j_obj["num_output_layers"]);
+                this->weights.push_back(
+                    Eigen::MatrixXd::Zero(j_obj["num_output_layers"], j_obj["num_input_layers"]));
+                for (int i = 0, idx = 0; i < j_obj["num_output_layers"]; i++)
+                {
+                    for (int j = 0; j < j_obj["num_input_layers"]; j++, idx++)
+                    {
+                        this->weights.back()(i, j) = j_obj["weights"][idx];
+                    }
+                }
+                this->biases.push_back(
+                    Eigen::MatrixXd::Ones(j_obj["num_output_layers"], 1));
+                for (int j = 0; j < j_obj["num_output_layers"]; j++) {
+                    this->biases.back()(j, 0) = j_obj["biases"][j];
+                }
+            }
+
+            /*
             file >> this->num_layers;
-            this->num_neurons = std::vector<int>(this->num_layers);
             file >> this->num_neurons.front();
             this->weights.reserve(num_layers - 1);
             this->biases.reserve(num_layers - 1);
@@ -121,6 +149,7 @@ public:
                     this->biases[l](j, 0) = x;
                 }
             }
+            */
         }
     }
 
@@ -167,7 +196,7 @@ public:
                     }
                     idx++;
                 }
-                file << indent(2) << "}," << "\n";
+                file << indent(2) << "}" << (i == num_layers-2 ? "" : ",") << "\n";
             }
             file << indent(1) << "]" << "\n";
             file << "}";
