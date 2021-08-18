@@ -49,7 +49,7 @@ void test_model(
 	);
 }
 
-TEST_CASE("Invert first input", "[logic_gate][model_train][model_test]") {
+TEST_CASE("Invert first input (Sigmoid)", "[logic_gate][model_train][model_test]") {
 
 	// training input data
 	Eigen::MatrixXd dataset(6, 3);
@@ -84,8 +84,53 @@ TEST_CASE("Invert first input", "[logic_gate][model_train][model_test]") {
 
 	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
 	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
-	nn.export_model(test_dir + "/model1.json");
-	NeuralNetwork<Sigmoid, 100> model(test_dir + "/model1.json");
+	nn.export_model(test_dir + "/model_sigmoid.json");
+	NeuralNetwork<Sigmoid, 100> model(test_dir + "/model_sigmoid.json");
+	test_model(model, dataset, expected_output);
+
+	Eigen::MatrixXd expected_test_data(4, 1);
+	expected_test_data << 1, 1, 0, 0;
+	test_model(nn, dataset2, expected_test_data);
+
+}
+
+TEST_CASE("Invert first input (ReLU)", "[logic_gate][model_train][model_test][relu]") {
+
+	// training input data
+	Eigen::MatrixXd dataset(6, 3);
+	dataset <<
+		0, 0, 0,
+		0, 0, 1,
+		0, 1, 1,
+		1, 0, 1,
+		1, 1, 0,
+		1, 1, 1;
+
+	// training expected results
+	Eigen::MatrixXd expected_output(6, 1);
+	expected_output << 1, 1, 1, 0, 0, 0;
+
+	// Creating a simple neural network with 2 layers
+	// (input and output) and 3 input nodes.
+	auto nn = NeuralNetwork<Sigmoid, 1000>(
+		3, 
+		{3, 3, 1 }, // Number of neurons per layer
+		{"relu", "relu"} // Activation functions
+	);
+	nn.train(dataset, expected_output);
+	test_model(nn, dataset, expected_output);
+
+	Eigen::MatrixXd dataset2(4, 3);
+	dataset2 <<
+		0, 0, 0,
+		0, 1, 1,
+		1, 0, 0,
+		1, 1, 1;
+
+	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
+	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
+	nn.export_model(test_dir + "/model_relu.json");
+	NeuralNetwork<Sigmoid, 100> model(test_dir + "/model_relu.json");
 	test_model(model, dataset, expected_output);
 
 	Eigen::MatrixXd expected_test_data(4, 1);

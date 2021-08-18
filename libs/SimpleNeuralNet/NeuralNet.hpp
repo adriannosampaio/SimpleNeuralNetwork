@@ -136,7 +136,7 @@ public:
                 file << indent(2) << "{" << "\n";
                 file << indent(3) << "\"num_input_layers\"  : " << this->weights[i].cols() << "," << "\n";
                 file << indent(3) << "\"num_output_layers\" : " << this->weights[i].rows() << "," << "\n";
-                file << indent(3) << "\"activation\" : " << "\"sigmoid\"" << "," << "\n";
+                file << indent(3) << "\"activation\" : " << "\""<<activation_functions[i]->get_name()<<"\"" << "," << "\n";
                 file << indent(3) << "\"weights\" : " << "[";
                 //file << num_neurons[i + 1] << " " << num_neurons[i] << "\n";
                 int idx = 0;
