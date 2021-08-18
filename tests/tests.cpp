@@ -8,9 +8,9 @@
 #include <cstdlib>
 #include <vector>
 
-template<class TA, int TI>
+
 void test_model(
-	const NeuralNetwork<TA, TI>& model, 
+	const NeuralNetwork& model, 
 	const Eigen::MatrixXd& test_set_inputs, 
 	const Eigen::MatrixXd& test_set_outputs)
 {
@@ -67,7 +67,7 @@ TEST_CASE("Invert first input (Sigmoid)", "[logic_gate][model_train][model_test]
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(
+	auto nn = NeuralNetwork(
 		3, 
 		{3, 3, 1 }, // Number of neurons per layer
 		{"sigmoid", "sigmoid"} // Activation functions
@@ -85,7 +85,7 @@ TEST_CASE("Invert first input (Sigmoid)", "[logic_gate][model_train][model_test]
 	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
 	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
 	nn.export_model(test_dir + "/model_sigmoid.json");
-	NeuralNetwork<Sigmoid, 100> model(test_dir + "/model_sigmoid.json");
+	NeuralNetwork model(test_dir + "/model_sigmoid.json");
 	test_model(model, dataset, expected_output);
 
 	Eigen::MatrixXd expected_test_data(4, 1);
@@ -112,7 +112,7 @@ TEST_CASE("Invert first input (ReLU)", "[logic_gate][model_train][model_test][re
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(
+	auto nn = NeuralNetwork(
 		3, 
 		{3, 3, 1 }, // Number of neurons per layer
 		{"relu", "relu"} // Activation functions
@@ -130,7 +130,7 @@ TEST_CASE("Invert first input (ReLU)", "[logic_gate][model_train][model_test][re
 	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
 	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
 	nn.export_model(test_dir + "/model_relu.json");
-	NeuralNetwork<Sigmoid, 100> model(test_dir + "/model_relu.json");
+	NeuralNetwork model(test_dir + "/model_relu.json");
 	test_model(model, dataset, expected_output);
 
 	Eigen::MatrixXd expected_test_data(4, 1);
@@ -158,7 +158,7 @@ TEST_CASE("(first OR second) AND third inputs", "[logic_gate][model_train][model
 
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork<Sigmoid, 1000>(
+	auto nn = NeuralNetwork(
 		4, 
 		{3, 3, 3, 1 },
 		{"sigmoid", "sigmoid", "sigmoid"}
@@ -220,7 +220,7 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/MNIST-dataset");
 	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
 
-	auto nn = NeuralNetwork<Sigmoid, 100>(4, { 28 * 28, 100, 100, 10 }, {"sigmoid", "sigmoid", "sigmoid"});
+	auto nn = NeuralNetwork(4, { 28 * 28, 100, 100, 10 }, {"sigmoid", "sigmoid", "sigmoid"});
 
 	// Converting labels to one-hot encoded data
 	Eigen::MatrixXd expected_outputs(data.train_labels.rows(), 10);
@@ -230,7 +230,7 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 				(i == data.train_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	nn.train(data.train_images, expected_outputs, 0.1);
+	nn.train(data.train_images, expected_outputs, 100, 0.1);
 	//data.train_images.block(0, 0, 100, data.train_images.cols()),
 	//expected_outputs.block(0, 0, 100, expected_outputs.cols()));
 
@@ -275,7 +275,7 @@ TEST_CASE("MNIST_IMPORT", "[mnist][model_test][.]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	auto nn = NeuralNetwork<Sigmoid, 100>(test_dir + "/mnist_model.json");
+	auto nn = NeuralNetwork(test_dir + "/mnist_model.json");
 	test_model(nn, data.test_images, test_outputs);
 
 }
@@ -308,7 +308,7 @@ TEST_CASE("MNIST_IMPORT_SAVED_BEFORE", "[mnist][model_test]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	auto nn = NeuralNetwork<Sigmoid, 100>(test_dir + "/mnist_model_saved.json");
+	auto nn = NeuralNetwork(test_dir + "/mnist_model_saved.json");
 	test_model(nn, data.test_images, test_outputs);
 
 }

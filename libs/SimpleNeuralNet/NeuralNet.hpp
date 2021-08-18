@@ -40,7 +40,6 @@ public:
 };
 
 
-template <typename TActivationFunction, int TEpochs=100>
 class NeuralNetwork {
 
     /** Stores the number of layers in the (including input
@@ -172,9 +171,9 @@ public:
     }
 
 
-    void train(const Eigen::MatrixXd& dataset, const Eigen::MatrixXd& expected_outputs, double alpha = 0.7) {
+    void train(const Eigen::MatrixXd& dataset, const Eigen::MatrixXd& expected_outputs, int num_iterations=1000, double alpha = 0.7) {
         int number_of_examples = dataset.rows();
-        constexpr int number_of_iterations = TEpochs;
+        constexpr int number_of_iterations = num_iterations;
 
         auto bar = LoadingBar(40, static_cast<double>(number_of_iterations));
         
