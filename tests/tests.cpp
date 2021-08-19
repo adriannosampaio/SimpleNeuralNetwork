@@ -220,7 +220,7 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/MNIST-dataset");
 	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
 
-	auto nn = NeuralNetwork(4, { 28 * 28, 100, 100, 10 }, {"sigmoid", "sigmoid", "sigmoid"});
+	auto nn = NeuralNetwork(4, { 28 * 28, 100, 100, 10 }, {"relu", "relu", "relu"});
 
 	// Converting labels to one-hot encoded data
 	Eigen::MatrixXd expected_outputs(data.train_labels.rows(), 10);
@@ -244,7 +244,7 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 	}
 	test_model(nn, data.test_images, test_outputs);
 
-	nn.export_model(test_dir + "/mnist_model.json");
+	nn.export_model(test_dir + "/mnist_model_relu.json");
 }
 
 TEST_CASE("MNIST_IMPORT", "[mnist][model_test][.]") {
