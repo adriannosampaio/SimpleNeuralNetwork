@@ -5,6 +5,7 @@
 #include <Dense>
 #include <nlohmann/json.hpp>
 #include "ActivationFunction.hpp"
+#include "LossFunction.hpp"
 
 
 
@@ -68,16 +69,18 @@ class NeuralNetwork {
 
     std::vector<std::shared_ptr<ActivationFunction>> activation_functions;
 
+    std::shared_ptr<LossFunction> loss;
+
 public:
     NeuralNetwork(
-        int num_layers, 
         const std::vector<int>& num_neurons,
-        const std::vector<std::string>& activation_function_names) 
+        const std::vector<std::string>& activation_function_names, 
+        const std::string& loss_function_name="quadratic")
     {
+        this->num_layers = num_neurons.size();
         assert(activation_function_names.size() == num_layers - 1);
-        assert(num_neurons.size() == num_layers);
-        this->num_layers = num_layers;
         this->num_neurons = num_neurons;
+        this->loss = loss_function_from_name(loss_function_name);
         this->weights.reserve(num_layers - 1);
         this->biases.reserve(num_layers - 1);
         for (int i = 0; i < num_layers - 1; i++)
@@ -96,6 +99,7 @@ public:
             json model_data;
             file >> model_data;
             this->num_layers = model_data["num_layers"];
+            this->loss = loss_function_from_name(model_data["cost_function"]);
             this->num_neurons.push_back(model_data["layers"][0]["num_input_layers"]);
             for (auto j_obj : model_data["layers"])
             {
@@ -128,7 +132,7 @@ public:
         {
             file << "{" << "\n";
             file << indent(1) << "\"num_layers\" : " << this->num_layers << "," << "\n";
-            file << indent(1) << "\"cost_function\" : " << "\"quadratic\"" << "," << "\n";
+            file << indent(1) << "\"cost_function\" : \"" << this->loss->get_name() << "\"," << "\n";
             file << indent(1) << "\"layers\" : [" << "\n";
             for (int i = 0; i < num_layers - 1; i++)
             {
@@ -188,9 +192,9 @@ public:
                 // updating weights
                 for (int layer = this->num_layers - 2; layer >= 0; layer--) {
                     // Weights delta
-                    this->weights[layer] += alpha * deltas.first[layer];
+                    this->weights[layer] -= alpha * deltas.first[layer];
                     // Biases delta
-                    this->biases[layer] += alpha * deltas.second[layer];
+                    this->biases[layer] -= alpha * deltas.second[layer];
                 }
 
             }
@@ -209,11 +213,16 @@ public:
         // Feed forward the current input value
         std::vector<Eigen::MatrixXd> z_values;
         std::vector<Eigen::MatrixXd> activations;
-        Eigen::MatrixXd cost = output - this->feed_forward(z_values, activations, input);
+        
+        this->feed_forward(z_values, activations, input);
 
         // Since there's no z-value in the first (input) layer
-        Eigen::MatrixXd delta =
-            cost.cwiseProduct(this->activation_functions.back()->apply_derivative(z_values.back()));
+        Eigen::MatrixXd delta = this->loss->delta(
+            activations.back(),
+            output,
+            z_values.back(),
+            this->activation_functions.back()
+        );
 
         weight_deltas[this->num_layers - 2] = delta * activations[this->num_layers - 2].transpose();
         bias_deltas[this->num_layers - 2] = delta;

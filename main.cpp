@@ -7,7 +7,6 @@
 
 #include "MnistReader.hpp"
 #include "NeuralNet.hpp"
-#include "ActivationFunction.hpp"
 
 int main()
 {
@@ -17,7 +16,7 @@ int main()
 		mnist2eigen::read_mnist_dataset("../tests/MNIST-dataset/");
 	mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
 
-	auto nn = NeuralNetwork(4, { 28 * 28, 100, 10 }, {"relu", "relu"});
+	auto nn = NeuralNetwork({ 28 * 28, 100, 10 }, {"relu", "relu"}, "quadratic");
 
 	// Converting labels to one-hot encoded data
 	Eigen::MatrixXd expected_outputs(data.train_labels.rows(), 10);

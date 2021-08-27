@@ -60,7 +60,7 @@ public:
     Sigmoid() : ActivationFunction("sigmoid") {}
 
     inline double function(double x) const override {
-        return 1 / (1 + exp(-x));
+        return 1.0 / (1.0 + exp(-x));
     }
 
     inline double derivative(double x) const override {
@@ -78,6 +78,20 @@ public:
 
     inline double derivative(double x) const override {
         // 1 if x >=0; and 0 otherwise
+        return double(x > 0);
+    }
+};
+
+class Softmax : public ActivationFunction {
+public:
+    Softmax() : ActivationFunction("softmax") {}
+
+    inline double function(double x) const override {
+        return std::max(0.0, x);
+    }
+
+    inline double derivative(double x) const override {
+        // 1 if x >=0; and 0 otherwise
         return (x >= 0);
     }
 };
@@ -86,6 +100,7 @@ std::shared_ptr<ActivationFunction> activation_from_name(const std::string& func
 {
     if (function_name == "sigmoid") return std::make_shared<Sigmoid>();
     else if (function_name == "relu") return std::make_shared<ReLU>();
+    else if (function_name == "softmax") return std::make_shared<Softmax>();
     // If the function did not yet return a value, then the passed function
     // name does not have a class defined
     throw std::runtime_error("Invalid activation function name: " + function_name);
