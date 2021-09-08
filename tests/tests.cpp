@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <memory>
 
 
 
@@ -200,7 +201,7 @@ TEST_CASE("MNIST_READ", "[mnist][data_read]") {
 	}
 }
 
-TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test]") {
+TEST_CASE("MNIST_TRAIN_Sig_Quad", "[mnist][model_train][model_test][.]") {
 	UNSCOPED_INFO("Test starting");
 
 	UNSCOPED_INFO("Setting expected result");
@@ -236,10 +237,10 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test]") {
 	}
 	test_mnist_model(nn, data.test_images, test_outputs);
 
-	nn.export_model(test_dir + "/mnist_model_sigmoid.json");
+	nn.export_model(test_dir + "/mnist_model_sigmoid_quadratic.json");
 }
 
-TEST_CASE("MNIST_IMPORT", "[mnist][model_test]") {
+TEST_CASE("MNIST_IMPORT_Sig_Quad", "[mnist][model_test][.]") {
 	UNSCOPED_INFO("Test starting");
 
 	UNSCOPED_INFO("Setting expected result");
@@ -267,7 +268,108 @@ TEST_CASE("MNIST_IMPORT", "[mnist][model_test]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	auto nn = NeuralNetwork(test_dir + "/mnist_model.json");
+	auto nn = NeuralNetwork(test_dir + "/mnist_model_sigmoid_quadratic.json");
+	test_mnist_model(nn, data.test_images, test_outputs);
+}
+
+TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
+	UNSCOPED_INFO("Test starting");
+
+	UNSCOPED_INFO("Setting expected result");
+	Eigen::setNbThreads(2);
+	// Pixels are already scaled from 0 to 1
+	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
+	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
+	UNSCOPED_INFO("Start reading MNIST files: " + test_dir);
+	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/MNIST-dataset");
+	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
+
+	// Converting labels to one-hot encoded data
+	Eigen::MatrixXd expected_training_outputs(data.train_labels.rows(), 10);
+	for (int r = 0; r < data.train_labels.rows(); r++) {
+		for (int i = 0; i < 10; i++) {
+			expected_training_outputs(r, i) =
+				(i == data.train_labels(r)) ? 1.0 : 0.0;
+		}
+	}
+
+	// Converting test labels to one-hot encoded data
+	Eigen::MatrixXd expected_test_outputs(data.test_labels.rows(), 10);
+	for (int r = 0; r < data.test_labels.rows(); r++) {
+		for (int i = 0; i < 10; i++) {
+			expected_test_outputs(r, i) =
+				(i == data.test_labels(r)) ? 1.0 : 0.0;
+		}
+	}
+	std::map<std::string, std::shared_ptr<NeuralNetwork>> networks;
+	networks["sigmoid_quadratic"]			= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "sigmoid", "sigmoid" }, "quadratic"	 ));
+	networks["relu_quadratic"]				= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "relu" },		 "quadratic"	 ));
+	networks["sigmoid_crossEntropy"]		= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "sigmoid", "sigmoid" }, "cross-entropy"));
+	networks["sigmoid_crossEntropy"]		= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "sigmoid", "softmax" }, "cross-entropy"));
+	networks["relu_crossEntropy"]			= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "relu" },		 "cross-entropy" ));
+	networks["relu_softmax_crossEntropy"]	= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "softmax" },	 "cross-entropy" ));
+
+	for (auto& net : networks){
+		auto model_name = net.first;
+		auto model = net.second;
+		std::cout << "\n\n\tTraining model: " << model_name << "\n\n\n";
+		model->train(data.train_images, expected_training_outputs, 100, 0.1);
+		std::cout << "\n\tTraining dataset:\n\n";
+		test_mnist_model(*model, data.train_images, expected_training_outputs);
+		std::cout << "\n\tTest dataset:\n\n";
+		test_mnist_model(*model, data.test_images, expected_test_outputs);
+		model->export_model(test_dir + "/mnist_model_" + model_name + ".json");
+	}
+
+
+	std::map<std::string, std::shared_ptr<NeuralNetwork>> networks2;
+	networks2["sigmoid_quadratic"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 100, 10 }, { "sigmoid", "sigmoid" }, "quadratic"));
+	networks2["sigmoid_crossEntropy"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 100, 10 }, { "sigmoid", "sigmoid" }, "cross-entropy"));
+	networks2["sigmoid_crossEntropy"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 100, 10 }, { "sigmoid", "softmax" }, "cross-entropy"));
+	networks2["relu_softmax_crossEntropy"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "softmax" },	 "cross-entropy"	 ));
+
+	for (auto& net : networks2) {
+		auto model_name = net.first;
+		auto model = net.second;
+		std::cout << "\n\n\tTraining model: " << model_name << "\n\n\n";
+		model->train(data.train_images, expected_training_outputs, 100, 0.1);
+		std::cout << "\n\tTraining dataset:\n\n";
+		test_mnist_model(*model, data.train_images, expected_training_outputs);
+		std::cout << "\n\tTest dataset:\n\n";
+		test_mnist_model(*model, data.test_images, expected_test_outputs);
+		model->export_model(test_dir + "/mnist_model_28*28_100_10_100it_" + model_name + ".json");
+	}
+}
+
+TEST_CASE("MNIST_IMPORT_relu_cross", "[mnist][model_test]") {
+	UNSCOPED_INFO("Test starting");
+
+	UNSCOPED_INFO("Setting expected result");
+	Eigen::setNbThreads(2);
+	// Pixels are already scaled from 0 to 1
+	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
+	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
+	UNSCOPED_INFO("Start reading MNIST files: " + test_dir);
+	auto folder = test_dir + "/MNIST-dataset";
+	// Reading only test data
+	const static std::string test_images_file = "t10k-images-idx3-ubyte";
+	const static std::string test_labels_file = "t10k-labels-idx1-ubyte";
+	mnist2eigen::MNISTImageReader test_images(folder + "/" + test_images_file);
+	mnist2eigen::MNISTLabelReader test_labels(folder + "/" + test_labels_file);
+	mnist2eigen::MNISTData data;
+	data.test_images = test_images.get_data();
+	data.test_labels = test_labels.get_data();
+	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
+
+	// Converting test labels to one-hot encoded data
+	Eigen::MatrixXd test_outputs(data.test_labels.rows(), 10);
+	for (int r = 0; r < data.test_labels.rows(); r++) {
+		for (int i = 0; i < 10; i++) {
+			test_outputs(r, i) =
+				(i == data.test_labels(r)) ? 1.0 : 0.0;
+		}
+	}
+	auto nn = NeuralNetwork(test_dir + "/mnist_model_relu_cross.json");
 	test_mnist_model(nn, data.test_images, test_outputs);
 }
 

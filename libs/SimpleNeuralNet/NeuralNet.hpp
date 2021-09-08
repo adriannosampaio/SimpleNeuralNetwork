@@ -91,6 +91,11 @@ public:
         }
     }
 
+    NeuralNetwork()
+    {
+        throw std::runtime_error("Please initialize the model");
+    }
+
     NeuralNetwork(const std::string& filename) {
         using json = nlohmann::json;
         std::ifstream file(filename);

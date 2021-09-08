@@ -78,7 +78,7 @@ public:
 
     inline double derivative(double x) const override {
         // 1 if x >=0; and 0 otherwise
-        return double(x > 0);
+        return double(x >= 0);
     }
 };
 
@@ -86,13 +86,40 @@ class Softmax : public ActivationFunction {
 public:
     Softmax() : ActivationFunction("softmax") {}
 
+    /** Applies the activation function to every component in a
+*	matrix
+*/
+    virtual Eigen::MatrixXd apply_function(const Eigen::MatrixXd& matrix) const
+    {
+        Eigen::MatrixXd softmax(matrix);
+        double max_value = matrix.maxCoeff();
+
+        // A and Y are always a Nx1 matrix
+        for (int i = 0; i < matrix.rows(); i++)
+        {
+            // Stable softmax, derived from the property that says
+            // softmax(z) = softmax(z + c) for every scalar c
+            double z = matrix(i, 0) - max_value;
+            softmax(i, 0) = std::exp(z);
+        }
+        double sum = softmax.sum();
+        return softmax / sum;
+    }
+
+    /** Applies the function derivative to every component in a
+    *	matrix
+    */
+    virtual Eigen::MatrixXd apply_derivative(const Eigen::MatrixXd& matrix) const
+    {
+        throw std::runtime_error("Error: Softmax function derivative not implemented");
+    }
+
     inline double function(double x) const override {
-        return std::max(0.0, x);
+        throw std::runtime_error("Error: Softmax function not implemented");
     }
 
     inline double derivative(double x) const override {
-        // 1 if x >=0; and 0 otherwise
-        return (x >= 0);
+        throw std::runtime_error("Error: Softmax function derivative not implemented");
     }
 };
 

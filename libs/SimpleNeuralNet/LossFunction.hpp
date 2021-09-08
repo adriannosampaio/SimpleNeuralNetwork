@@ -53,7 +53,6 @@ public:
 
     virtual double function(const Eigen::MatrixXd& a, const Eigen::MatrixXd& y) const
     {
-
         Eigen::MatrixXd cross_entropy = Eigen::MatrixXd::Zero(a.rows(), a.cols());
         // A and Y are always a Nx1 matrix
         for (int i = 0; i < a.rows(); i++)
@@ -63,11 +62,6 @@ public:
             cross_entropy(i, 0) = (-y(i, 0) * std::log(a(i, 0))) - (1 - y(i, 0) * std::log(1 - a(i, 0)));
         }
         return cross_entropy.sum();
-        //const static Eigen::MatrixXd ones = Eigen::MatrixXd::Constant(a.rows(), a.cols(), 1.0);
-        //const static Eigen::MatrixXd zeros = Eigen::MatrixXd::Zero(a.rows(), a.cols());
-        //Eigen::MatrixXd a_log = a.array().log();
-        //Eigen::MatrixXd inverse_a_log = (ones - a).array().log();
-        //return ((zeros - y).cwiseProduct(a_log) - (ones - y).cwiseProduct(inverse_a_log)).sum();
     }
 
     virtual Eigen::MatrixXd delta(
