@@ -7,6 +7,43 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <memory>
+
+
+
+
+void test_mnist_model(
+	const NeuralNetwork& model,
+	const Eigen::MatrixXd& test_set_inputs,
+	const Eigen::MatrixXd& test_set_outputs)
+{
+	//Eigen::MatrixXd obtained_output(
+	//	test_set_outputs.cols(),
+	//	test_set_outputs.rows());
+
+	int test_examples = test_set_inputs.rows();
+	int wrong_predictions = 0;
+	for (int ex = 0; ex < test_examples; ex++) {
+		int row, col;
+		// Getting the row of the maximum value in the expected output
+		test_set_outputs.row(ex).transpose().maxCoeff(&row, &col);
+		// this will get the actual digit expected
+		int digit_expected = row;
+		// Obtaining a prediction for the test case
+		Eigen::MatrixXd prediction = model.feed_forward(test_set_inputs.row(ex).transpose());
+		// finding the maximum value in the output array (thus, finding the predicted digit)
+		prediction.maxCoeff(&row, &col);
+		// get the predicted digit
+		int digit_predicted = row;
+		if (digit_expected != digit_predicted)
+			wrong_predictions++;
+	}
+
+	CHECK(wrong_predictions < test_examples);
+	WARN(wrong_predictions << " out of " << test_examples << " failed predictions ("
+		<< 100 * (double)wrong_predictions / test_examples << "% fail rate)"
+	);
+}
 
 
 void test_model(
@@ -33,6 +70,7 @@ void test_model(
 			bool is_correct = result_difference == Catch::Detail::Approx(0.0).margin(0.1);
 			if (!is_correct){
 				num_errors++;
+				CHECK(is_correct);
 				WARN(
 					"Error at example " << ex 
 					<< " , in output neuron " << i 
@@ -68,9 +106,9 @@ TEST_CASE("Invert first input (Sigmoid)", "[logic_gate][model_train][model_test]
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
 	auto nn = NeuralNetwork(
-		3, 
 		{3, 3, 1 }, // Number of neurons per layer
-		{"sigmoid", "sigmoid"} // Activation functions
+		{"sigmoid", "sigmoid"}, // Activation functions
+		"quadratic"
 	);
 	nn.train(dataset, expected_output);
 	test_model(nn, dataset, expected_output);
@@ -86,51 +124,6 @@ TEST_CASE("Invert first input (Sigmoid)", "[logic_gate][model_train][model_test]
 	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
 	nn.export_model(test_dir + "/model_sigmoid.json");
 	NeuralNetwork model(test_dir + "/model_sigmoid.json");
-	test_model(model, dataset, expected_output);
-
-	Eigen::MatrixXd expected_test_data(4, 1);
-	expected_test_data << 1, 1, 0, 0;
-	test_model(nn, dataset2, expected_test_data);
-
-}
-
-TEST_CASE("Invert first input (ReLU)", "[logic_gate][model_train][model_test][relu]") {
-
-	// training input data
-	Eigen::MatrixXd dataset(6, 3);
-	dataset <<
-		0, 0, 0,
-		0, 0, 1,
-		0, 1, 1,
-		1, 0, 1,
-		1, 1, 0,
-		1, 1, 1;
-
-	// training expected results
-	Eigen::MatrixXd expected_output(6, 1);
-	expected_output << 1, 1, 1, 0, 0, 0;
-
-	// Creating a simple neural network with 2 layers
-	// (input and output) and 3 input nodes.
-	auto nn = NeuralNetwork(
-		3, 
-		{3, 3, 1 }, // Number of neurons per layer
-		{"relu", "relu"} // Activation functions
-	);
-	nn.train(dataset, expected_output);
-	test_model(nn, dataset, expected_output);
-
-	Eigen::MatrixXd dataset2(4, 3);
-	dataset2 <<
-		0, 0, 0,
-		0, 1, 1,
-		1, 0, 0,
-		1, 1, 1;
-
-	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
-	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
-	nn.export_model(test_dir + "/model_relu.json");
-	NeuralNetwork model(test_dir + "/model_relu.json");
 	test_model(model, dataset, expected_output);
 
 	Eigen::MatrixXd expected_test_data(4, 1);
@@ -159,9 +152,9 @@ TEST_CASE("(first OR second) AND third inputs", "[logic_gate][model_train][model
 	// Creating a simple neural network with 2 layers
 	// (input and output) and 3 input nodes.
 	auto nn = NeuralNetwork(
-		4, 
 		{3, 3, 3, 1 },
-		{"sigmoid", "sigmoid", "sigmoid"}
+		{"sigmoid", "sigmoid", "sigmoid"},
+		"quadratic"
 	);
 	nn.train(dataset, expected_output);
 	test_model(nn, dataset, expected_output);
@@ -208,7 +201,7 @@ TEST_CASE("MNIST_READ", "[mnist][data_read]") {
 	}
 }
 
-TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
+TEST_CASE("MNIST_TRAIN_Sig_Quad", "[mnist][model_train][model_test][.]") {
 	UNSCOPED_INFO("Test starting");
 
 	UNSCOPED_INFO("Setting expected result");
@@ -220,7 +213,7 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/MNIST-dataset");
 	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
 
-	auto nn = NeuralNetwork(4, { 28 * 28, 100, 100, 10 }, {"sigmoid", "sigmoid", "sigmoid"});
+	auto nn = NeuralNetwork({ 28 * 28, 30, 10 }, {"sigmoid", "sigmoid"}, "quadratic");
 
 	// Converting labels to one-hot encoded data
 	Eigen::MatrixXd expected_outputs(data.train_labels.rows(), 10);
@@ -242,12 +235,12 @@ TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	test_model(nn, data.test_images, test_outputs);
+	test_mnist_model(nn, data.test_images, test_outputs);
 
-	nn.export_model(test_dir + "/mnist_model.json");
+	nn.export_model(test_dir + "/mnist_model_sigmoid_quadratic.json");
 }
 
-TEST_CASE("MNIST_IMPORT", "[mnist][model_test][.]") {
+TEST_CASE("MNIST_IMPORT_Sig_Quad", "[mnist][model_test][.]") {
 	UNSCOPED_INFO("Test starting");
 
 	UNSCOPED_INFO("Setting expected result");
@@ -275,9 +268,109 @@ TEST_CASE("MNIST_IMPORT", "[mnist][model_test][.]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
-	auto nn = NeuralNetwork(test_dir + "/mnist_model.json");
-	test_model(nn, data.test_images, test_outputs);
+	auto nn = NeuralNetwork(test_dir + "/mnist_model_sigmoid_quadratic.json");
+	test_mnist_model(nn, data.test_images, test_outputs);
+}
 
+TEST_CASE("MNIST_TRAIN", "[mnist][model_train][model_test][.]") {
+	UNSCOPED_INFO("Test starting");
+
+	UNSCOPED_INFO("Setting expected result");
+	Eigen::setNbThreads(2);
+	// Pixels are already scaled from 0 to 1
+	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
+	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
+	UNSCOPED_INFO("Start reading MNIST files: " + test_dir);
+	auto data = mnist2eigen::read_mnist_dataset(test_dir + "/MNIST-dataset");
+	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
+
+	// Converting labels to one-hot encoded data
+	Eigen::MatrixXd expected_training_outputs(data.train_labels.rows(), 10);
+	for (int r = 0; r < data.train_labels.rows(); r++) {
+		for (int i = 0; i < 10; i++) {
+			expected_training_outputs(r, i) =
+				(i == data.train_labels(r)) ? 1.0 : 0.0;
+		}
+	}
+
+	// Converting test labels to one-hot encoded data
+	Eigen::MatrixXd expected_test_outputs(data.test_labels.rows(), 10);
+	for (int r = 0; r < data.test_labels.rows(); r++) {
+		for (int i = 0; i < 10; i++) {
+			expected_test_outputs(r, i) =
+				(i == data.test_labels(r)) ? 1.0 : 0.0;
+		}
+	}
+	std::map<std::string, std::shared_ptr<NeuralNetwork>> networks;
+	networks["sigmoid_quadratic"]			= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "sigmoid", "sigmoid" }, "quadratic"	 ));
+	networks["relu_quadratic"]				= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "relu" },		 "quadratic"	 ));
+	networks["sigmoid_crossEntropy"]		= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "sigmoid", "sigmoid" }, "cross-entropy"));
+	networks["sigmoid_crossEntropy"]		= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "sigmoid", "softmax" }, "cross-entropy"));
+	networks["relu_crossEntropy"]			= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "relu" },		 "cross-entropy" ));
+	networks["relu_softmax_crossEntropy"]	= std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "softmax" },	 "cross-entropy" ));
+
+	for (auto& net : networks){
+		auto model_name = net.first;
+		auto model = net.second;
+		std::cout << "\n\n\tTraining model: " << model_name << "\n\n\n";
+		model->train(data.train_images, expected_training_outputs, 100, 0.1);
+		std::cout << "\n\tTraining dataset:\n\n";
+		test_mnist_model(*model, data.train_images, expected_training_outputs);
+		std::cout << "\n\tTest dataset:\n\n";
+		test_mnist_model(*model, data.test_images, expected_test_outputs);
+		model->export_model(test_dir + "/mnist_model_" + model_name + ".json");
+	}
+
+
+	std::map<std::string, std::shared_ptr<NeuralNetwork>> networks2;
+	networks2["sigmoid_quadratic"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 100, 10 }, { "sigmoid", "sigmoid" }, "quadratic"));
+	networks2["sigmoid_crossEntropy"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 100, 10 }, { "sigmoid", "sigmoid" }, "cross-entropy"));
+	networks2["sigmoid_crossEntropy"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 100, 10 }, { "sigmoid", "softmax" }, "cross-entropy"));
+	networks2["relu_softmax_crossEntropy"] = std::shared_ptr<NeuralNetwork>(new NeuralNetwork({ 28 * 28, 30, 10 }, { "relu", "softmax" },	 "cross-entropy"	 ));
+
+	for (auto& net : networks2) {
+		auto model_name = net.first;
+		auto model = net.second;
+		std::cout << "\n\n\tTraining model: " << model_name << "\n\n\n";
+		model->train(data.train_images, expected_training_outputs, 100, 0.1);
+		std::cout << "\n\tTraining dataset:\n\n";
+		test_mnist_model(*model, data.train_images, expected_training_outputs);
+		std::cout << "\n\tTest dataset:\n\n";
+		test_mnist_model(*model, data.test_images, expected_test_outputs);
+		model->export_model(test_dir + "/mnist_model_28*28_100_10_100it_" + model_name + ".json");
+	}
+}
+
+TEST_CASE("MNIST_IMPORT_relu_cross", "[mnist][model_test]") {
+	UNSCOPED_INFO("Test starting");
+
+	UNSCOPED_INFO("Setting expected result");
+	Eigen::setNbThreads(2);
+	// Pixels are already scaled from 0 to 1
+	UNSCOPED_INFO("Getting environment variable SNN_TEST_DIR");
+	std::string test_dir = std::string(std::getenv("SNN_TEST_DIR"));
+	UNSCOPED_INFO("Start reading MNIST files: " + test_dir);
+	auto folder = test_dir + "/MNIST-dataset";
+	// Reading only test data
+	const static std::string test_images_file = "t10k-images-idx3-ubyte";
+	const static std::string test_labels_file = "t10k-labels-idx1-ubyte";
+	mnist2eigen::MNISTImageReader test_images(folder + "/" + test_images_file);
+	mnist2eigen::MNISTLabelReader test_labels(folder + "/" + test_labels_file);
+	mnist2eigen::MNISTData data;
+	data.test_images = test_images.get_data();
+	data.test_labels = test_labels.get_data();
+	//mnist2eigen::write_ppm("test.ppm", data.test_images, 10);
+
+	// Converting test labels to one-hot encoded data
+	Eigen::MatrixXd test_outputs(data.test_labels.rows(), 10);
+	for (int r = 0; r < data.test_labels.rows(); r++) {
+		for (int i = 0; i < 10; i++) {
+			test_outputs(r, i) =
+				(i == data.test_labels(r)) ? 1.0 : 0.0;
+		}
+	}
+	auto nn = NeuralNetwork(test_dir + "/mnist_model_relu_cross.json");
+	test_mnist_model(nn, data.test_images, test_outputs);
 }
 
 TEST_CASE("MNIST_IMPORT_SAVED_BEFORE", "[mnist][model_test]") {
@@ -309,6 +402,5 @@ TEST_CASE("MNIST_IMPORT_SAVED_BEFORE", "[mnist][model_test]") {
 		}
 	}
 	auto nn = NeuralNetwork(test_dir + "/mnist_model_saved.json");
-	test_model(nn, data.test_images, test_outputs);
-
+	test_mnist_model(nn, data.test_images, test_outputs);
 }
