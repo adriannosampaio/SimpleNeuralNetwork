@@ -1,0 +1,5 @@
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
+pybind11_add_module(pyNeuralNet pyNeuralNet.cpp)
+target_include_directories(pyNeuralNet PRIVATE libs)
+target_link_libraries(pyNeuralNet PRIVATE Eigen3::Eigen mnist2eigen SimpleNeuralNet)
