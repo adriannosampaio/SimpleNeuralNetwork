@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <Dense>
+#include <Eigen/Dense>
 
 #include "MnistReader.hpp"
 #include "NeuralNet.hpp"

@@ -2,5 +2,11 @@ name: snn
 channels:
   - conda-forge
 dependencies:
+  - cmake
+  - scikit-learn
+  - keras
+  - tensorflow
   - catch2
   - nlohmann_json
+  - pybind11
+  - eigen

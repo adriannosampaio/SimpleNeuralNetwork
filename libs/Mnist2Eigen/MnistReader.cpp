@@ -2,7 +2,6 @@
 
 #include "MnistReader.hpp"
 // Eigen
-#include <Dense>
 // Standard Library C++
 #include <vector>
 #include <fstream>

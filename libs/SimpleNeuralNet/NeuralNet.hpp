@@ -1,8 +1,10 @@
 #pragma once
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include <memory>
 #include <stack>
-#include <Dense>
+#include <Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include "ActivationFunction.hpp"
 #include "LossFunction.hpp"
@@ -219,7 +221,7 @@ public:
         std::vector<Eigen::MatrixXd> z_values;
         std::vector<Eigen::MatrixXd> activations;
         
-        this->feed_forward(z_values, activations, input);
+        this->feed_forward_for_training(z_values, activations, input);
 
         // Since there's no z-value in the first (input) layer
         Eigen::MatrixXd delta = this->loss->delta(
@@ -270,7 +272,7 @@ public:
     *   There z_{l} values are used during the backpropagation step in training, and
     *   thus, need to be stored.
     */
-    Eigen::MatrixXd feed_forward(
+    Eigen::MatrixXd feed_forward_for_training(
         std::vector<Eigen::MatrixXd>& zs,
         std::vector<Eigen::MatrixXd>& activations,
         const Eigen::MatrixXd& input) const
