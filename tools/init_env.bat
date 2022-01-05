@@ -1,4 +1,4 @@
-::@echo off
+@echo off
 if NOT DEFINED CONDA_PREFIX (
 	echo Conda not found. Please install/configure conda path.
 ) else (

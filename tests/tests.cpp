@@ -9,9 +9,6 @@
 #include <vector>
 #include <memory>
 
-
-
-
 void test_mnist_model(
 	const NeuralNetwork& model,
 	const Eigen::MatrixXd& test_set_inputs,
@@ -44,7 +41,6 @@ void test_mnist_model(
 		<< 100 * (double)wrong_predictions / test_examples << "% fail rate)"
 	);
 }
-
 
 void test_model(
 	const NeuralNetwork& model, 
@@ -199,6 +195,8 @@ TEST_CASE("MNIST_READ", "[mnist][data_read]") {
 			REQUIRE(non_zero_pixels.count(index) > 0);
 		}
 	}
+
+	
 }
 
 TEST_CASE("MNIST_TRAIN_Sig_Quad", "[mnist][model_train][model_test][.]") {
@@ -268,6 +266,27 @@ TEST_CASE("MNIST_IMPORT_Sig_Quad", "[mnist][model_test][.]") {
 				(i == data.test_labels(r)) ? 1.0 : 0.0;
 		}
 	}
+
+	std::ofstream file(std::string(std::getenv("SNN_DIR")) + "/tools/mnist_test_data.txt");
+	// for each test case (image to be predicted)
+	for (int img = 0; img < data.test_labels.rows(); img++)
+	{
+		// save pixels
+		for (int pixel = 0; pixel < data.test_images.cols(); pixel++)
+		{
+			file << data.test_images(img, pixel) << " ";
+		}
+		file << "\n";
+		// save label (with one-hot encoding)
+		for (int category = 0; category < 10; category++)
+		{
+			file << test_outputs(img, category) << " ";
+		}
+		file << "\n\n";
+	}
+
+
+
 	auto nn = NeuralNetwork(test_dir + "/mnist_model_sigmoid_quadratic.json");
 	test_mnist_model(nn, data.test_images, test_outputs);
 }

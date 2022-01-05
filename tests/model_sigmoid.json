@@ -1,0 +1,20 @@
+{
+	"num_layers" : 3,
+	"cost_function" : "quadratic",
+	"layers" : [
+		{
+			"num_input_layers"  : 3,
+			"num_output_layers" : 3,
+			"activation" : "sigmoid",
+			"weights" : [3.60685, 0.143534, -0.332699, 3.66381, 0.144157, -0.329257, 3.60442, 0.143121, -0.332405],
+			"biases" : [-1.67659, -1.70827, -1.6754]
+		},
+		{
+			"num_input_layers"  : 3,
+			"num_output_layers" : 1,
+			"activation" : "sigmoid",
+			"weights" : [-3.5592, -3.64812, -3.55555],
+			"biases" : [5.18081]
+		}
+	]
+}

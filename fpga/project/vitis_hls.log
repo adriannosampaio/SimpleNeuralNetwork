@@ -1,0 +1,38 @@
+INFO: [HLS 200-10] Running 'C:/Xilinx/Vitis_HLS/2021.1/bin/unwrapped/win64.o/vitis_hls.exe'
+INFO: [HLS 200-10] For user 'adria' on host 'laptop-u8966892' (Windows NT_amd64 version 6.2) on Sun Jan 02 22:00:19 -0300 2022
+INFO: [HLS 200-10] In directory 'C:/Users/adria/Desktop/ANN-test/fpga/project'
+Sourcing Tcl script 'C:/Users/adria/Desktop/ANN-test/fpga/project/ANN/solution1/csim.tcl'
+INFO: [HLS 200-1510] Running: open_project ANN 
+INFO: [HLS 200-10] Opening project 'C:/Users/adria/Desktop/ANN-test/fpga/project/ANN'.
+INFO: [HLS 200-1510] Running: set_top feed_forward 
+INFO: [HLS 200-1510] Running: add_files ../src/NeuralNet.hpp 
+INFO: [HLS 200-10] Adding design file '../src/NeuralNet.hpp' to the project
+INFO: [HLS 200-1510] Running: add_files ../src/NeuralNet.cpp 
+INFO: [HLS 200-10] Adding design file '../src/NeuralNet.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files ../src/MatrixFPGA.hpp 
+INFO: [HLS 200-10] Adding design file '../src/MatrixFPGA.hpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb ../src/testbench.cpp -cflags -Wno-unknown-pragmas -csimflags -Wno-unknown-pragmas 
+INFO: [HLS 200-10] Adding test bench file '../src/testbench.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution solution1 -flow_target vivado 
+INFO: [HLS 200-10] Opening solution 'C:/Users/adria/Desktop/ANN-test/fpga/project/ANN/solution1'.
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-3'
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see www.xilinx.com/cgi-bin/docs/rdoc?v=2021.1;t=hls+guidance;d=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020-clg400-3 
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [HLS 200-1510] Running: csim_design -argv ../../mnist_sig_quad_fpga.txt ../../mnist_test_data.txt -quiet 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch GCC as the compiler.
+   Compiling ../../../../../src/testbench.cpp in debug mode
+   Generating csim.exe
+../../mnist_sig_quad_fpga.txt
+../../mnist_test_data.txt
+
+
+Reading model...
+
+Prediction errors found: 92
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-111] Finished Command csim_design CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 4.268 seconds; current allocated memory: 227.290 MB.

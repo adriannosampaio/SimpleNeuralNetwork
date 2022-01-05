@@ -1,0 +1,56 @@
+INFO: [HLS 200-10] Running 'C:/Xilinx/Vitis_HLS/2021.1/bin/unwrapped/win64.o/vitis_hls.exe'
+INFO: [HLS 200-10] For user 'adria' on host 'laptop-u8966892' (Windows NT_amd64 version 6.2) on Wed Dec 15 21:10:58 -0300 2021
+INFO: [HLS 200-10] In directory 'C:/Users/adria/Documents/Projects/ANN-test/fpga'
+Sourcing Tcl script 'C:/Users/adria/Documents/Projects/ANN-test/fpga/NeuralNet/solution1/csim.tcl'
+INFO: [HLS 200-1510] Running: open_project NeuralNet 
+INFO: [HLS 200-10] Opening project 'C:/Users/adria/Documents/Projects/ANN-test/fpga/NeuralNet'.
+INFO: [HLS 200-1510] Running: add_files src/NeuralNet.hpp 
+INFO: [HLS 200-10] Adding design file 'src/NeuralNet.hpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/NeuralNet.cpp 
+INFO: [HLS 200-10] Adding design file 'src/NeuralNet.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/MatrixFPGA.hpp 
+INFO: [HLS 200-10] Adding design file 'src/MatrixFPGA.hpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb test_inputs -cflags -Wno-unknown-pragmas -csimflags -Wno-unknown-pragmas 
+INFO: [HLS 200-10] Adding test bench file 'test_inputs' to the project
+INFO: [HLS 200-1510] Running: add_files -tb src/testbench.cpp -cflags -Wno-unknown-pragmas -csimflags -Wno-unknown-pragmas 
+INFO: [HLS 200-10] Adding test bench file 'src/testbench.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution solution1 -flow_target vivado 
+INFO: [HLS 200-10] Opening solution 'C:/Users/adria/Documents/Projects/ANN-test/fpga/NeuralNet/solution1'.
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see www.xilinx.com/cgi-bin/docs/rdoc?v=2021.1;t=hls+guidance;d=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020-clg400-1 
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [HLS 200-1510] Running: csim_design -argv test_inputs/mnist_sig_quad_fpga.txt test_inputs/mnist_test_data.txt -setup -quiet 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch GCC as the compiler.
+   Compiling ../../../../src/testbench.cpp in debug mode
+   Compiling ../../../../src/NeuralNet.cpp in debug mode
+   Generating csim.exe
+In file included from C:/Xilinx/Vitis_HLS/2021.1/include/floating_point_v7_0_bitacc_cmodel.h:144:0,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_fpo.h:189,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_half_fpo.h:64,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_half.h:71,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_math.h:41,
+                 from ../../../../src/NeuralNet.cpp:3:
+C:/Xilinx/Vitis_HLS/2021.1/include/gmp.h:63:0: warning: "__GMP_LIBGMP_DLL" redefined
+ #define __GMP_LIBGMP_DLL  0
+ 
+In file included from C:/Xilinx/Vitis_HLS/2021.1/include/hls_fpo.h:189:0,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_half_fpo.h:64,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_half.h:71,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_math.h:41,
+                 from ../../../../src/NeuralNet.cpp:3:
+C:/Xilinx/Vitis_HLS/2021.1/include/floating_point_v7_0_bitacc_cmodel.h:136:0: note: this is the location of the previous definition
+ #define __GMP_LIBGMP_DLL 1
+ 
+In file included from C:/Xilinx/Vitis_HLS/2021.1/include/hls_hotbm_apfixed.h:45:0,
+                 from C:/Xilinx/Vitis_HLS/2021.1/include/hls_math.h:1065,
+                 from ../../../../src/NeuralNet.cpp:3:
+C:/Xilinx/Vitis_HLS/2021.1/include/utils/x_hls_utils.h:243:40: warning: 'hls_preserve' attribute directive ignored [-Wattributes]
+ __attribute__((hls_preserve)) T reg(T d)
+                                        ^
+INFO: [SIM 211-1] CSim file generation done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-111] Finished Command csim_design CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 17.372 seconds; current allocated memory: 227.464 MB.
